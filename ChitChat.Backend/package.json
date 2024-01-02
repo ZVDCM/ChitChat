@@ -1,12 +1,27 @@
 {
-  "name": "chitchat.backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "MIT"
+	"name": "chitchat.backend",
+	"version": "1.0.0",
+	"description": "",
+	"main": "./src/index.js",
+	"type": "module",
+	"scripts": {
+		"compile": "tsc",
+		"start": "npm run compile && node ./dist/index.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ChitChat/ChitChat.Backend.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "MIT",
+	"dependencies": {
+		"@apollo/server": "^4.9.5",
+		"dotenv": "^16.3.1",
+		"graphql": "^16.8.1"
+	},
+	"devDependencies": {
+		"@types/node": "^20.10.6",
+		"typescript": "^5.3.3"
+	}
 }
