@@ -1,42 +1,28 @@
-# Chit Chat
+# Chit Chat 
 
 - [Chit Chat](#chit-chat)
   - [Models](#models)
     - [User Model](#user-model)
     - [Token Model](#token-model)
-    - [Chat Model](#chat-model)
   - [Schema](#schema)
-    - [Users Type Definition](#users-type-definition)
-      - [Primitives](#primitives)
-      - [Mutation](#mutation)
-    - [Chat Type Definition](#chat-type-definition)
-      - [Primitives](#primitives-1)
-      - [Query](#query)
-      - [Subscription](#subscription)
+    - [Primitives](#primitives)
+    - [Query](#query)
+    - [Mutation](#mutation)
   - [Operations](#operations)
-    - [Users Operations](#users-operations)
-      - [Mutation Operations](#mutation-operations)
-        - [Login Operation](#login-operation)
-          - [Login Variables](#login-variables)
-          - [Login Responses](#login-responses)
-        - [Register Operation](#register-operation)
-          - [Register Variables](#register-variables)
-          - [Register Responses](#register-responses)
-        - [Refresh Operation](#refresh-operation)
+    - [Mutation Operations](#mutation-operations)
+      - [Login Operation](#login-operation)
+        - [Login Variables](#login-variables)
+        - [Login Responses](#login-responses)
+      - [Register Operation](#register-operation)
+        - [Register Variables](#register-variables)
+        - [Register Responses](#register-responses)
+      - [Refresh Operation](#refresh-operation)
         - [Refresh Responses](#refresh-responses)
-        - [Logout Operation](#logout-operation)
-          - [Logout Responses](#logout-responses)
-        - [Chat Operation](#chat-operation)
-          - [Chat Variables](#chat-variables)
-          - [Chat Responses](#chat-responses)
-    - [Chat Operations](#chat-operations)
-      - [Query Operations](#query-operations)
-        - [Chat Operation](#chat-operation-1)
-          - [Chat Variables](#chat-variables-1)
-          - [Chat Responses](#chat-responses-1)
-      - [Subscription Operations](#subscription-operations)
-        - [MessageAdded Operation](#messageadded-operation)
-          - [MessageAdded Responses](#messageadded-responses)
+      - [Logout Operation](#logout-operation)
+        - [Logout Responses](#logout-responses)
+      - [Chat Operation](#chat-operation)
+        - [Chat Variables](#chat-variables)
+        - [Chat Responses](#chat-responses)
 
 ---
 
@@ -68,37 +54,16 @@
 }
 ```
 
-### Chat Model
-
-```json
-{
-    "id": "2f8986c6-68fd-5810-8075-c856b3217c14",
-    "messages": [
-        {
-            "userId": "45c537ab-e2b7-5b8c-89c4-42dced882d03",
-            "userName": "Bobby Martinez",
-            "value": "Fugiat amet elit Lorem laboris quis veniam cillum ut ad dolore.",
-            "createdAt": "2024-03-16T16:12:14+08:00",
-            "updatedAt": "2024-11-18T23:15:36+08:00"
-        }
-    ],
-    "createdAt": "2024-04-26T16:53:12+08:00",
-    "updatedAt": "2024-10-07T05:25:06+08:00"
-}
-```
-
 ---
 
 ## Schema
 
-### Users Type Definition
-
-#### Primitives
+### Primitives
 
 ```gql
 scalar Date
 
-type Auditable {
+interface Auditable {
     createdAt: Date!
     updatedAt: Date!
 }
@@ -139,7 +104,15 @@ type AuthResponse {
 }
 ```
 
-#### Mutation
+### Query
+
+```gql
+type Query {
+    _dummy: String
+}
+```
+
+### Mutation
 
 ```gql
 type Mutation {
@@ -158,59 +131,11 @@ type Mutation {
 
 ---
 
-### Chat Type Definition
-
-#### Primitives
-
-```gql
-scalar Date
-
-type Auditable {
-    createdAt: Date!
-    updatedAt: Date!
-}
-
-type Message implements Auditable {
-    userID: String!
-    userName: String!
-    value: String!
-    createdAt: Date!
-    updatedAt: Date!
-}
-
-type Chat implements Auditable {
-    id: ID!
-    messages: [Message]!
-    createdAt: Date!
-    updatedAt: Date!
-}
-```
-
-#### Query
-
-```gql
-type Query {
-    chat(userId: ID!): Chat
-}
-```
-
-#### Subscription
-
-```gql
-type Subscription {
-    messageAdded: Message
-}
-```
-
----
-
 ## Operations
 
-### Users Operations
+### Mutation Operations
 
-#### Mutation Operations
-
-##### Login Operation
+#### Login Operation
 
 ```gql
 mutation Login($email: String!, $password: String!) {
@@ -229,7 +154,7 @@ mutation Login($email: String!, $password: String!) {
 }
 ```
 
-###### Login Variables
+##### Login Variables
 
 ```json
 {
@@ -238,7 +163,7 @@ mutation Login($email: String!, $password: String!) {
 }
 ```
 
-###### Login Responses
+##### Login Responses
 
 ```json
 {
@@ -276,7 +201,7 @@ mutation Login($email: String!, $password: String!) {
 }
 ```
 
-##### Register Operation
+#### Register Operation
 
 ```gql
 mutation Register(
@@ -305,7 +230,7 @@ mutation Register(
 }
 ```
 
-###### Register Variables
+##### Register Variables
 
 ```json
 {
@@ -316,7 +241,7 @@ mutation Register(
 }
 ```
 
-###### Register Responses
+##### Register Responses
 
 ```json
 {
@@ -388,7 +313,7 @@ mutation Register(
 }
 ```
 
-##### Refresh Operation
+#### Refresh Operation
 
 ```gql
 mutation Mutation {
@@ -462,7 +387,7 @@ mutation Mutation {
 }
 ```
 
-##### Logout Operation
+#### Logout Operation
 
 ```gql
 mutation Mutation {
@@ -470,7 +395,7 @@ mutation Mutation {
 }
 ```
 
-###### Logout Responses
+##### Logout Responses
 
 ```json
 {
@@ -480,7 +405,7 @@ mutation Mutation {
 }
 ```
 
-##### Chat Operation
+#### Chat Operation
 
 ```gql
 mutation Chat($chatId: ID!, $value: String!) {
@@ -488,7 +413,7 @@ mutation Chat($chatId: ID!, $value: String!) {
 }
 ```
 
-###### Chat Variables
+##### Chat Variables
 
 ```json
 {
@@ -497,7 +422,7 @@ mutation Chat($chatId: ID!, $value: String!) {
 }
 ```
 
-###### Chat Responses
+##### Chat Responses
 
 ```json
 {
@@ -589,142 +514,5 @@ mutation Chat($chatId: ID!, $value: String!) {
         }
     ],
     "data": null
-}
-```
-
----
-
-### Chat Operations
-
-#### Query Operations
-
-##### Chat Operation
-
-```gql
-query Chat($userId: ID!) {
-    chat(userId: $userId) {
-        chat {
-            id
-            messages
-            createdAt
-            updatedAt
-        }
-    }
-}
-```
-
-###### Chat Variables
-
-```json
-{
-    "userId": "8155ed23-4109-570b-957e-fb3cea9f57c9"
-}
-```
-
-###### Chat Responses
-
-```json
-{
-    "data": {
-        "chat": {
-            "id": "548be483-2dba-593c-8b34-e9fb8f13adc7",
-            "messages": [
-                {
-                    "userId": "20a5d2e7-320c-5fa9-8d38-e43eeb400ba5",
-                    "userName": "Lela Rhodes",
-                    "value": "Proident ullamco irure ullamco reprehenderit.",
-                    "createdAt": "2024-01-03T12:58:15+08:00",
-                    "updatedAt": "2024-06-28T20:20:45+08:00"
-                }
-            ],
-            "createdAt": "2024-03-04T14:24:09+08:00",
-            "updatedAt": "2024-01-12T23:08:33+08:00"
-        }
-    }
-}
-```
-
-```json
-{
-    "errors": [
-        {
-            "message": "Officia enim in ullamco ipsum consequat enim dolor ipsum pariatur ex officia.",
-            "extensions": {
-                "code": "UNAUTHORIZED",
-                "exception": {
-                    "statusCode": 401
-                }
-            }
-        }
-    ],
-    "data": null
-}
-```
-
-```json
-{
-    "errors": [
-        {
-            "message": "Duis et reprehenderit pariatur dolor irure elit in pariatur est esse ipsum et est consectetur.",
-            "extensions": {
-                "code": "FORBIDDEN",
-                "exception": {
-                    "statusCode": 403
-                }
-            }
-        }
-    ],
-    "data": null
-}
-```
-
-```json
-{
-    "errors": [
-        {
-            "message": "Ullamco aute eiusmod nostrud mollit pariatur excepteur veniam.",
-            "extensions": {
-                "code": "NOT_FOUND",
-                "exception": {
-                    "statusCode": 404
-                }
-            }
-        }
-    ],
-    "data": null
-}
-```
-
-#### Subscription Operations
-
-##### MessageAdded Operation
-
-```gql
-subscription MessageAdded {
-    messageAdded {
-        message {
-            userId
-            userName
-            value
-            createdAt
-            updatedAt
-        }
-    }
-}
-```
-
-###### MessageAdded Responses
-
-```json
-{
-    "data": {
-        "message": {
-            "userId": "6a22648e-bf0d-538c-a0cb-b892429525b4",
-            "userName": "William Adams",
-            "value": "Adipisicing proident veniam cupidatat cillum excepteur velit magna do commodo ut commodo.",
-            "createdAt": "2024-02-24T21:27:29+08:00",
-            "updatedAt": "2024-12-05T00:55:11+08:00"
-        }
-    }
 }
 ```
