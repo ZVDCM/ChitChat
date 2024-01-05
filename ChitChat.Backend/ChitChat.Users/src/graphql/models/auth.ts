@@ -1,5 +1,5 @@
 import { ITokenResponse } from "./token.js";
-import { IUserResponse } from "./users.js";
+import { IUserResponse } from "./user.js";
 
 export interface ILoginRequest {
 	email: string;
