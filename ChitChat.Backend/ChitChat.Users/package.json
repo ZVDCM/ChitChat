@@ -20,7 +20,9 @@
 		"@apollo/server": "^4.9.5",
 		"@graphql-tools/utils": "^10.0.12",
 		"dotenv": "^16.3.1",
-		"graphql": "^16.8.1"
+		"graphql": "^16.8.1",
+		"winston": "^3.11.0",
+		"winston-daily-rotate-file": "^4.7.1"
 	},
 	"devDependencies": {
 		"@types/node": "^20.10.6",
