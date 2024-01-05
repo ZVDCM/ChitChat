@@ -1,19 +1,18 @@
-import { startStandaloneServer } from "@apollo/server/standalone";
-import dotenv from "dotenv";
-import server from "./server.js";
+import { startStandaloneServer } from '@apollo/server/standalone';
+import dotenv from 'dotenv';
+import server from './server.js';
+import logger from './utils/logger.js';
+import tryCatch from './utils/tryCatch.js';
 
-dotenv.config({ path: "../.env" });
+dotenv.config({ path: '../.env' });
 
-const start = async () => {
-	try {
-		const { url } = await startStandaloneServer(server, {
-			listen: { port: parseInt(process.env.PORT || "4000") },
-		});
+const PORT = process.env.LOG_LEVEL || '4000';
 
-		console.log(`🚀  Server ready at: ${url}`);
-	} catch (error) {
-		console.log(error);
-	}
-};
+const start = tryCatch(async () => {
+    const { url } = await startStandaloneServer(server, {
+        listen: { port: parseInt(PORT) },
+    });
+    logger.info(`🚀  Server ready at: ${url}`);
+});
 
 await start();
