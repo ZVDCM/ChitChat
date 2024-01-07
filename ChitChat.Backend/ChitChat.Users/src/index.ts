@@ -1,18 +1,23 @@
-import { startStandaloneServer } from '@apollo/server/standalone';
 import dotenv from 'dotenv';
-import server from './server.js';
 import logger from './utils/logger.js';
 import tryCatch from './utils/tryCatch.js';
+import startServer from './server/server.js';
+import startDatabase from './database/database.js';
+import { Firestore, getFirestore } from 'firebase/firestore';
 
 dotenv.config({ path: '../.env' });
 
-const PORT = process.env.LOG_LEVEL || '4000';
+const start = tryCatch(
+    async (): Promise<{ url: string; database: Firestore }> => {
+        const app = startDatabase();
+        const database = getFirestore(app);
+        logger.info(`Database ready`);
 
-const start = tryCatch(async () => {
-    const { url } = await startStandaloneServer(server, {
-        listen: { port: parseInt(PORT) },
-    });
-    logger.info(`🚀  Server ready at: ${url}`);
-});
+        const url = await startServer();
+        logger.info(`Server ready at: ${url}`);
 
-await start();
+        return { url, database };
+    }
+);
+
+export const { url, database } = await start();
