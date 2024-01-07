@@ -9,7 +9,7 @@ const logger = winston.createLogger({
     format: combine(
         errors({ stack: true }),
         timestamp({
-            format: 'YYYY-MM-DD hh:mm:ss.SSS A',
+            format: process.env.LOGGER_TIMESTAMP ?? 'YYYY-MM-DD hh:mm:ss.SSS A',
         }),
         json()
     ),
@@ -27,25 +27,25 @@ const logger = winston.createLogger({
             ),
         }),
         new winston.transports.DailyRotateFile({
-            filename: '%DATE%.log',
-            dirname: 'logs/infos',
-            datePattern: 'YYYY-MM-DD',
-            maxFiles: '14d',
+            filename: process.env.LOG_FILENAME ?? '%DATE%.log',
+            dirname: process.env.LOG_INFO_DIRECTORY ?? 'logs/infos',
+            datePattern: process.env.DATE_PATTERN ?? 'YYYY-MM-DD',
+            maxFiles: process.env.LOGGER_MAX_FILES ?? '14d',
         }),
         new winston.transports.DailyRotateFile({
             level: 'error',
-            filename: '%DATE%.log',
-            dirname: 'logs/errors',
-            datePattern: 'YYYY-MM-DD',
-            maxFiles: '14d',
+            filename: process.env.LOG_FILENAME ?? '%DATE%.log',
+            dirname: process.env.LOG_ERROR_DIRECTORY ?? 'logs/errors',
+            datePattern: process.env.DATE_PATTERN ?? 'YYYY-MM-DD',
+            maxFiles: process.env.LOGGER_MAX_FILES ?? '14d',
         }),
     ],
     exceptionHandlers: [
         new winston.transports.DailyRotateFile({
-            filename: '%DATE%.log',
-            dirname: 'logs/exceptions',
-            datePattern: 'YYYY-MM-DD',
-            maxFiles: '14d',
+            filename: process.env.LOG_FILENAME ?? '%DATE%.log',
+            dirname: process.env.LOG_EXCEPTION_DIRECTORY ?? 'logs/exceptions',
+            datePattern: process.env.DATE_PATTERN ?? 'YYYY-MM-DD',
+            maxFiles: process.env.LOGGER_MAX_FILES ?? '14d',
         }),
     ],
 });
