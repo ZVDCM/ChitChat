@@ -1,16 +1,16 @@
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import logger from './utils/logger.js';
 import tryCatch from './utils/tryCatch.js';
-import startServer from './server/server.js';
-import startDatabase from './database/database.js';
-import { Firestore, getFirestore } from 'firebase/firestore';
-
-dotenv.config({ path: '../.env' });
+import startServer from './config/server.js';
+import startDatabase from './config/database.js';
 
 const start = tryCatch(
-    async (): Promise<{ url: string; database: Firestore }> => {
-        const app = startDatabase();
-        const database = getFirestore(app);
+    async (): Promise<{
+        url: string;
+        database: FirebaseFirestore.Firestore;
+    }> => {
+        const app = await startDatabase();
+        const database = app.firestore();
         logger.info(`Database ready`);
 
         const url = await startServer();

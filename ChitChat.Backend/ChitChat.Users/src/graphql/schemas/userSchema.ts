@@ -1,9 +1,16 @@
+import isStringEmpty from '../../utils/isStringEmpty.js';
 import {
     IAuthResponse,
     ILoginRequest,
     IRegisterRequest,
 } from '../models/auth.js';
 import { IChatRequest } from '../models/chat.js';
+import { unprocessable } from '../../services/errors.js';
+import User from '../models/user.js';
+import Token from '../models/token.js';
+import { database } from '../../index.js';
+import hashPassword from '../../utils/hashPassword.js';
+import Ref from '../../services/ref.js';
 
 export const userTypeDef = `#graphql
 	scalar Date
@@ -85,21 +92,30 @@ export const userResolver = {
                 },
             };
         },
-        register: (
-            _: unknown,
+        register: async (
+            _: any,
             { name, email, password, confirmPassword }: IRegisterRequest
-        ): IAuthResponse => {
+        ): Promise<IAuthResponse> => {
+            if (isStringEmpty(name)) throw unprocessable('name is empty');
+            if (isStringEmpty(email)) throw unprocessable('email is empty');
+            if (isStringEmpty(password))
+                throw unprocessable('password is empty');
+            if (isStringEmpty(confirmPassword))
+                throw unprocessable('confirmPassword is empty');
+
+            if (password !== confirmPassword)
+                throw unprocessable('passwords do not match');
+
+            const hashedPassword = await hashPassword(password);
+            const user = new User(name, email, hashedPassword);
+            const token = new Token(user.id, hashedPassword);
+
+            await Ref.users(database).doc(user.id).set(user);
+            await Ref.tokens(database).doc(token.id).set(token);
+
             return {
-                user: {
-                    id: confirmPassword,
-                    name: name,
-                    email: email,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                },
-                token: {
-                    value: password,
-                },
+                user: user.getValue(),
+                token: token.getValue(),
             };
         },
         refresh: (): IAuthResponse => {
