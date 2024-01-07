@@ -15,7 +15,7 @@ const startServer = async (): Promise<string> => {
 
     const server = new ApolloServer({ schema });
 
-    const port = process.env.LOG_LEVEL || '4000';
+    const port = process.env.LOG_LEVEL ?? '4000';
 
     const { url } = await startStandaloneServer(server, {
         listen: { port: parseInt(port) },
