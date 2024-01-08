@@ -11,6 +11,7 @@ import Token from '../models/token.js';
 import { database } from '../../index.js';
 import hashPassword from '../../utils/hashPassword.js';
 import Ref from '../../services/ref.js';
+import { isNotEmail } from '../../utils/isNotEmail.js';
 
 export const userTypeDef = `#graphql
 	scalar Date
@@ -97,12 +98,12 @@ export const userResolver = {
             { name, email, password, confirmPassword }: IRegisterRequest
         ): Promise<IAuthResponse> => {
             if (isStringEmpty(name)) throw unprocessable('name is empty');
-            if (isStringEmpty(email)) throw unprocessable('email is empty');
+            if (isStringEmpty(email) || isNotEmail(email))
+                throw unprocessable('email is empty');
             if (isStringEmpty(password))
                 throw unprocessable('password is empty');
             if (isStringEmpty(confirmPassword))
                 throw unprocessable('confirmPassword is empty');
-
             if (password !== confirmPassword)
                 throw unprocessable('passwords do not match');
 
