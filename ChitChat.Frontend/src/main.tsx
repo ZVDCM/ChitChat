@@ -5,6 +5,13 @@ import HomePage from '@pages/HomePage';
 import LoginPage from '@pages/LoginPage';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import RegisterPage from '@pages/RegisterPage';
+import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
+import { BACKEND_URL } from '@consts/server';
+
+const client = new ApolloClient({
+    uri: BACKEND_URL,
+    cache: new InMemoryCache(),
+});
 
 const router = createBrowserRouter([
     {
@@ -26,6 +33,8 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-        <RouterProvider router={router} />
+        <ApolloProvider client={client}>
+            <RouterProvider router={router} />
+        </ApolloProvider>
     </React.StrictMode>
 );

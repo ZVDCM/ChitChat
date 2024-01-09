@@ -1,7 +1,11 @@
+import { useMutation } from '@apollo/client';
 import Validations from '@utils/validations';
 import React, { useRef } from 'react';
+import { REGISTER } from '@graphql/mutations/users';
 
 function RegisterContainer() {
+    const [register] = useMutation(REGISTER);
+
     const usernameRef = useRef({} as HTMLInputElement);
     const emailRef = useRef({} as HTMLInputElement);
     const passwordRef = useRef({} as HTMLInputElement);
@@ -31,7 +35,14 @@ function RegisterContainer() {
             return;
         }
 
-        console.log(username, email, password, confirmPassword);
+        register({
+            variables: {
+                displayName: username,
+                email,
+                password,
+                confirmPassword,
+            },
+        });
     };
 
     return (
