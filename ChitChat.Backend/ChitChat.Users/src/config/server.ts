@@ -12,13 +12,11 @@ const startServer = async (): Promise<string> => {
         typeDefs: mergedTypeDefs,
         resolvers: mergedResolvers,
     });
-
     const server = new ApolloServer({ schema });
-
-    const port = process.env.LOG_LEVEL ?? '4000';
-
+    
+    const port = process.env.PORT;
     const { url } = await startStandaloneServer(server, {
-        listen: { port: parseInt(port) },
+        listen: { port: Number(port) },
     });
 
     return url;

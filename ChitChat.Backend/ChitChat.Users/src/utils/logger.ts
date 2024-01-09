@@ -9,7 +9,7 @@ const logger = winston.createLogger({
     format: combine(
         errors({ stack: true }),
         timestamp({
-            format: process.env.LOGGER_TIMESTAMP ?? 'YYYY-MM-DD hh:mm:ss.SSS A',
+            format: process.env.LOGGER_TIMESTAMP,
         }),
         json()
     ),
@@ -27,25 +27,25 @@ const logger = winston.createLogger({
             ),
         }),
         new winston.transports.DailyRotateFile({
-            filename: process.env.LOG_FILENAME ?? '%DATE%.log',
-            dirname: process.env.LOG_INFO_DIRECTORY ?? 'logs/infos',
-            datePattern: process.env.DATE_PATTERN ?? 'YYYY-MM-DD',
-            maxFiles: process.env.LOGGER_MAX_FILES ?? '14d',
+            filename: process.env.LOG_FILENAME,
+            dirname: process.env.LOG_INFO_DIRECTORY,
+            datePattern: process.env.LOG_DATE_PATTERN,
+            maxFiles: process.env.LOGGER_MAX_FILES,
         }),
         new winston.transports.DailyRotateFile({
             level: 'error',
-            filename: process.env.LOG_FILENAME ?? '%DATE%.log',
-            dirname: process.env.LOG_ERROR_DIRECTORY ?? 'logs/errors',
-            datePattern: process.env.DATE_PATTERN ?? 'YYYY-MM-DD',
-            maxFiles: process.env.LOGGER_MAX_FILES ?? '14d',
+            filename: process.env.LOG_FILENAME,
+            dirname: process.env.LOG_ERROR_DIRECTORY,
+            datePattern: process.env.LOG_DATE_PATTERN,
+            maxFiles: process.env.LOGGER_MAX_FILES,
         }),
     ],
     exceptionHandlers: [
         new winston.transports.DailyRotateFile({
-            filename: process.env.LOG_FILENAME ?? '%DATE%.log',
-            dirname: process.env.LOG_EXCEPTION_DIRECTORY ?? 'logs/exceptions',
-            datePattern: process.env.DATE_PATTERN ?? 'YYYY-MM-DD',
-            maxFiles: process.env.LOGGER_MAX_FILES ?? '14d',
+            filename: process.env.LOG_FILENAME,
+            dirname: process.env.LOG_EXCEPTION_DIRECTORY,
+            datePattern: process.env.LOG_DATE_PATTERN,
+            maxFiles: process.env.LOGGER_MAX_FILES,
         }),
     ],
 });
