@@ -27,7 +27,7 @@ export const userTypeDef = `#graphql
             email: String!
             password: String!
             confirmPassword: String!
-        ): boolean
+        ): Boolean
     }
 `;
 
@@ -37,21 +37,21 @@ export const userResolver = {
             _: any,
             { displayName, email, password, confirmPassword }: IRegisterRequest
         ): Promise<boolean> => {
-            if (Validations.isStringEmpty(displayName))
-                throw unprocessable('name is empty');
-            if (!Validations.isValidEmail(email))
-                throw unprocessable('email is empty');
-            if (!Validations.isValidPassword(password))
-                throw unprocessable('password is empty');
+            if (Validations.isNotStringEmpty(displayName))
+                throw unprocessable('Username is empty');
+            if (Validations.isInvalidEmail(email))
+                throw unprocessable('Email must be valid');
+            if (Validations.isInvalidPassword(password))
+                throw unprocessable('Password must be at least 6 characters long');
             if (password !== confirmPassword)
-                throw unprocessable('passwords do not match');
+                throw unprocessable('Passwords do not match');
 
             await admin.auth().createUser({
                 displayName,
                 email,
                 password,
             });
-            
+
             return true;
         },
     },
