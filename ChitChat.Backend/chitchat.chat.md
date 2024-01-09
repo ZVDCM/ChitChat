@@ -24,11 +24,11 @@
 
 ```json
 {
-    "id": "2f8986c6-68fd-5810-8075-c856b3217c14",
+    "uid": "2f8986c6-68fd-5810-8075-c856b3217c14",
     "messages": [
         {
-            "userId": "45c537ab-e2b7-5b8c-89c4-42dced882d03",
-            "userName": "Bobby Martinez",
+            "userUid": "45c537ab-e2b7-5b8c-89c4-42dced882d03",
+            "userDisplayName": "Bobby Martinez",
             "value": "Fugiat amet elit Lorem laboris quis veniam cillum ut ad dolore.",
             "createdAt": "2024-03-16T16:12:14+08:00",
             "updatedAt": "2024-11-18T23:15:36+08:00"
@@ -46,26 +46,21 @@
 ### Primitives
 
 ```gql
-scalar Date
-
 interface Auditable {
-    createdAt: Date!
-    updatedAt: Date!
+    createdAt: String!
 }
 
 type Message implements Auditable {
-    userID: String!
-    userName: String!
+    userUid: String!
+    userDisplayName: String!
     value: String!
-    createdAt: Date!
-    updatedAt: Date!
+    createdAt: String!
 }
 
 type Chat implements Auditable {
-    id: ID!
+    uid: ID!
     messages: [Message]!
-    createdAt: Date!
-    updatedAt: Date!
+    createdAt: String!
 }
 ```
 
@@ -73,7 +68,7 @@ type Chat implements Auditable {
 
 ```gql
 type Query {
-    chat(userId: ID!): Chat
+    chat(userUid: ID!): Chat
 }
 ```
 
@@ -94,13 +89,12 @@ type Subscription {
 #### Chat Operation
 
 ```gql
-query Chat($userId: ID!) {
-    chat(userId: $userId) {
+query Chat($userUid: ID!) {
+    chat(userUid: $userUid) {
         chat {
-            id
+            uid
             messages
             createdAt
-            updatedAt
         }
     }
 }
@@ -110,7 +104,7 @@ query Chat($userId: ID!) {
 
 ```json
 {
-    "userId": "8155ed23-4109-570b-957e-fb3cea9f57c9"
+    "userUid": "8155ed23-4109-570b-957e-fb3cea9f57c9"
 }
 ```
 
@@ -120,18 +114,17 @@ query Chat($userId: ID!) {
 {
     "data": {
         "chat": {
-            "id": "548be483-2dba-593c-8b34-e9fb8f13adc7",
+            "uid": "548be483-2dba-593c-8b34-e9fb8f13adc7",
             "messages": [
                 {
-                    "userId": "20a5d2e7-320c-5fa9-8d38-e43eeb400ba5",
-                    "userName": "Lela Rhodes",
+                    "userUid": "20a5d2e7-320c-5fa9-8d38-e43eeb400ba5",
+                    "userDisplayName": "Lela Rhodes",
                     "value": "Proident ullamco irure ullamco reprehenderit.",
                     "createdAt": "2024-01-03T12:58:15+08:00",
                     "updatedAt": "2024-06-28T20:20:45+08:00"
                 }
             ],
             "createdAt": "2024-03-04T14:24:09+08:00",
-            "updatedAt": "2024-01-12T23:08:33+08:00"
         }
     }
 }
@@ -196,11 +189,10 @@ query Chat($userId: ID!) {
 subscription MessageAdded {
     messageAdded {
         message {
-            userId
-            userName
+            userUid
+            userDisplayName
             value
             createdAt
-            updatedAt
         }
     }
 }
@@ -212,11 +204,10 @@ subscription MessageAdded {
 {
     "data": {
         "message": {
-            "userId": "6a22648e-bf0d-538c-a0cb-b892429525b4",
-            "userName": "William Adams",
+            "userUid": "6a22648e-bf0d-538c-a0cb-b892429525b4",
+            "userDisplayName": "William Adams",
             "value": "Adipisicing proident veniam cupidatat cillum excepteur velit magna do commodo ut commodo.",
             "createdAt": "2024-02-24T21:27:29+08:00",
-            "updatedAt": "2024-12-05T00:55:11+08:00"
         }
     }
 }

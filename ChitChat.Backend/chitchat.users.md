@@ -1,4 +1,4 @@
-# Chit Chat 
+# Chit Chat
 
 - [Chit Chat](#chit-chat)
   - [Models](#models)
@@ -32,12 +32,11 @@
 
 ```json
 {
-    "id": "3708c335-ca3e-5ee0-8471-94a641796f36",
-    "name": "Rosalie Sandoval",
+    "uid": "3708c335-ca3e-5ee0-8471-94a641796f36",
+    "displayName": "Rosalie Sandoval",
     "email": "ikogone@ecduk.ms",
     "password": "BzrHWhBTdJPfxxvKzsSMu6rm2eaOnCUbrYyDhpizckdHwedkQQ8aMMCq6HGP",
-    "createdAt": "2024-06-14T22:19:57+08:00",
-    "updatedAt": "2024-07-01T21:48:09+08:00"
+    "createdAt": "2024-06-14T22:19:57+08:00"
 }
 ```
 
@@ -45,12 +44,11 @@
 
 ```json
 {
-    "id": "e8017bb5-559c-5030-a1c3-7dab5054b8b0",
+    "uid": "e8017bb5-559c-5030-a1c3-7dab5054b8b0",
     "userId": "3f98d75f-a1a5-52ec-b182-a2db092e9a72",
     "value": "PaykzhbaQLHuoi7csmoNWtV016XrdheTYN2GhdzW9kPday5KaxZfuE51ODdxeKSAfgEFYuvQKVIIF5rHv9K5bhdF89VPiCY3wtT03D3Iv9bacN5XQlA1PhKdltPCXaeouPNbiulvg9WNLJV0Wni0kaCb0XyprWzqRTSnABP9OBQItVjC79GE2Amuv0jydKZXtaXRrZq8n9ctjkTDce7RCO6rwRb8RUNwzUjzQS9zdWihzn94erfY8t26AnonZiWMdQKW1neZWfuqaEMRjTZEBiEs6MHktr3FklRh86uO3MRj",
     "disabled": false,
-    "createdAt": "2024-09-02T23:14:55+08:00",
-    "updatedAt": "2024-10-24T04:06:22+08:00"
+    "createdAt": "2024-09-02T23:14:55+08:00"
 }
 ```
 
@@ -61,46 +59,23 @@
 ### Primitives
 
 ```gql
-scalar Date
-
 interface Auditable {
-    createdAt: Date!
-    updatedAt: Date!
+    createdAt: String!
 }
 
 type User implements Auditable {
-    id: ID!
-    name: String!
+    uid: ID!
+    displayName: String!
     email: String!
     password: String!
-    createdAt: Date!
-    updatedAt: Date!
-}
-
-type Token implements Auditable {
-    id: ID!
-    userID: String!
-    value: String!
-    disabled: Boolean!
-    createdAt: Date!
-    updatedAt: Date!
+    createdAt: String!
 }
 
 type UserResponse {
-    id: String!
-    name: String!
+    uid: String!
+    displayName: String!
     email: String!
-    createdAt: Date!
-    updatedAt: Date!
-}
-
-type TokenResponse {
-    value: String!
-}
-
-type AuthResponse {
-    user: UserResponse
-    token: TokenResponse
+    createdAt: String!
 }
 ```
 
@@ -116,16 +91,16 @@ type Query {
 
 ```gql
 type Mutation {
-    login(email: String!, password: String!): AuthResponse
+    login(email: String!, password: String!): UserResponse
     register(
-        name: String!
+        displayName: String!
         email: String!
         password: String!
         confirmPassword: String!
-    ): AuthResponse
-    refresh: AuthResponse
+    ): UserResponse
+    refresh: UserResponse
     logout: Boolean
-    chat(chatId: ID!, value: String!): Boolean
+    chat(chatUid: ID!, value: String!): Boolean
 }
 ```
 
@@ -140,16 +115,10 @@ type Mutation {
 ```gql
 mutation Login($email: String!, $password: String!) {
     login(email: $email, password: $password) {
-        user {
-            id
-            name
-            email
-            createdAt
-            updatedAt
-        }
-        token {
-            value
-        }
+        uid
+        displayName
+        email
+        createdAt
     }
 }
 ```
@@ -169,16 +138,10 @@ mutation Login($email: String!, $password: String!) {
 {
     "data": {
         "login": {
-            "user": {
-                "id": "bbef40c8-fcf3-51d2-bb78-13c3585691fa",
-                "name": "Nell Morrison",
-                "email": "ukhodar@jeh.tp",
-                "createdAt": "2024-08-15T06:23:18+08:00",
-                "updatedAt": "2024-10-30T09:32:18+08:00"
-            },
-            "token": {
-                "value": "nLr35tzqJMGOKXdcn6Rt9bOYRPag686vNTv7Zh0DygNb3WjeeoBRRabJ19NoXh6126I9wGvXcY1BggfPTI6VEvBimqY2Wl8s5NOhM7iGL9lhZyFDIPtId0qmjCipWEQh8NVNyyd7RO2kBzVRet4sau32OusSU6rfQP2zmzprkrYa6qRhHLrx4gY6NzFmtcxWz3asdTXymKLwFDBPpw5FgMRJgbqWgJCy8D5XMZGs7DmNr8l7vclbZN9bp8ZJfeZjS9oN8st4e0k2Vczx6O2GDtBU5VY3YngyeDQqDITMOgGa"
-            }
+            "uid": "bbef40c8-fcf3-51d2-bb78-13c3585691fa",
+            "displayName": "Nell Morrison",
+            "email": "ukhodar@jeh.tp",
+            "createdAt": "2024-08-15T06:23:18+08:00"
         }
     }
 }
@@ -205,27 +168,21 @@ mutation Login($email: String!, $password: String!) {
 
 ```gql
 mutation Register(
-    $name: String!
+    $displayName: String!
     $email: String!
     $password: String!
     $confirmPassword: String!
 ) {
     register(
-        name: $name
+        displayName: $displayName
         email: $email
         password: $password
         confirmPassword: $confirmPassword
     ) {
-        user {
-            id
-            name
-            email
-            createdAt
-            updatedAt
-        }
-        token {
-            value
-        }
+        uid
+        displayName
+        email
+        createdAt
     }
 }
 ```
@@ -234,7 +191,7 @@ mutation Register(
 
 ```json
 {
-    "name": "Hallie Copeland",
+    "displayName": "Hallie Copeland",
     "email": "zoc@zuufgip.gd",
     "password": "obij8xkp",
     "confirmPassword": "obij8xkp"
@@ -247,16 +204,10 @@ mutation Register(
 {
     "data": {
         "register": {
-            "user": {
-                "id": "25a9a067-46e9-5ef6-bff6-6135d6628f00",
-                "name": "Kyle Wise",
-                "email": "zen@duk.ad",
-                "createdAt": "2024-11-11T04:51:52+08:00",
-                "updatedAt": "2024-11-18T14:25:09+08:00"
-            },
-            "token": {
-                "value": "yUHPhLlnKu69zrq34rZ3vS6zIfb5cj5M2GBCOMgzoy1rvRq3o1nJfwXtdmbdFOfXGfFI8NSxEHFbh51UN28NXZp62b1bIRcBuHfDw1P6N54VLVjt554SFJE5Q1ch38fsAI3aqx3016voQ1Veg2TNsAn7nvTLo7NwVycD7s0j0zqdYmK9gWCmuFpJYQCQxI1g1TDTwLccjwKWJIOwODc863WfH9kyMUobtq354IaGbqsHYcmWIMvj5gviUT2PoPUFEFloAG95vRJLyqe4ohwuhnTuiCDiFs6UZAPP14xJIOCQ"
-            }
+            "uid": "25a9a067-46e9-5ef6-bff6-6135d6628f00",
+            "displayName": "Kyle Wise",
+            "email": "zen@duk.ad",
+            "createdAt": "2024-11-11T04:51:52+08:00"
         }
     }
 }
@@ -318,16 +269,10 @@ mutation Register(
 ```gql
 mutation Mutation {
     refresh {
-        user {
-            id
-            name
-            email
-            createdAt
-            updatedAt
-        }
-        token {
-            value
-        }
+        uid
+        displayName
+        email
+        createdAt
     }
 }
 ```
@@ -337,17 +282,11 @@ mutation Mutation {
 ```json
 {
     "data": {
-        "register": {
-            "user": {
-                "id": "25a9a067-46e9-5ef6-bff6-6135d6628f00",
-                "name": "Kyle Wise",
-                "email": "zen@duk.ad",
-                "createdAt": "2024-11-11T04:51:52+08:00",
-                "updatedAt": "2024-11-18T14:25:09+08:00"
-            },
-            "token": {
-                "value": "yUHPhLlnKu69zrq34rZ3vS6zIfb5cj5M2GBCOMgzoy1rvRq3o1nJfwXtdmbdFOfXGfFI8NSxEHFbh51UN28NXZp62b1bIRcBuHfDw1P6N54VLVjt554SFJE5Q1ch38fsAI3aqx3016voQ1Veg2TNsAn7nvTLo7NwVycD7s0j0zqdYmK9gWCmuFpJYQCQxI1g1TDTwLccjwKWJIOwODc863WfH9kyMUobtq354IaGbqsHYcmWIMvj5gviUT2PoPUFEFloAG95vRJLyqe4ohwuhnTuiCDiFs6UZAPP14xJIOCQ"
-            }
+        "refresh": {
+            "uid": "25a9a067-46e9-5ef6-bff6-6135d6628f00",
+            "displayName": "Kyle Wise",
+            "email": "zen@duk.ad",
+            "createdAt": "2024-11-11T04:51:52+08:00"
         }
     }
 }
@@ -357,7 +296,7 @@ mutation Mutation {
 {
     "errors": [
         {
-            "message": "Cillum reprehenderit do qui irure non dolore ipsum cupidatat et adipisicing minim est.",
+            "message": "Cillum reprehenderit do qui irure non dolore ipsum cupuidatat et adipisicing minim est.",
             "extensions": {
                 "code": "UNAUTHORIZED",
                 "exception": {
@@ -408,8 +347,8 @@ mutation Mutation {
 #### Chat Operation
 
 ```gql
-mutation Chat($chatId: ID!, $value: String!) {
-    chat(chatId: $chatId, value: $value)
+mutation Chat($chatUid: ID!, $value: String!) {
+    chat(chatUid: $chatUid, value: $value)
 }
 ```
 
@@ -417,7 +356,7 @@ mutation Chat($chatId: ID!, $value: String!) {
 
 ```json
 {
-    "chatId": "72b3ab5a-189a-55a4-a3d3-018d9c60aa62",
+    "chatUid": "72b3ab5a-189a-55a4-a3d3-018d9c60aa62",
     "value": "Irure veniam sit occaecat amet aute sit."
 }
 ```
@@ -487,7 +426,7 @@ mutation Chat($chatId: ID!, $value: String!) {
 {
     "errors": [
         {
-            "message": "Magna eu consequat sunt est eiusmod incididunt voluptate qui consectetur laboris velit tempor.",
+            "message": "Magna eu consequat sunt est eiusmod incuiduidunt voluptate qui consectetur laboris velit tempor.",
             "extensions": {
                 "code": "NOT_FOUND",
                 "exception": {
@@ -504,7 +443,7 @@ mutation Chat($chatId: ID!, $value: String!) {
 {
     "errors": [
         {
-            "message": "Adipisicing exercitation Lorem quis elit tempor mollit nisi culpa aliqua enim adipisicing proident cillum commodo.",
+            "message": "Adipisicing exercitation Lorem quis elit tempor mollit nisi culpa aliqua enim adipisicing prouident cillum commodo.",
             "extensions": {
                 "code": "UNPROCESSABLE_ENTITY",
                 "exception": {
