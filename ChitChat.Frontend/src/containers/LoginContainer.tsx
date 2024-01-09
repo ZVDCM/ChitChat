@@ -1,15 +1,22 @@
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import React, { useRef } from 'react';
+import { auth } from '../main';
 
 function LoginContainer() {
     const emailRef = useRef({} as HTMLInputElement);
     const passwordRef = useRef({} as HTMLInputElement);
 
-    const handleSubmit = (event: React.FormEvent) => {
+    const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         const email = emailRef.current.value;
         const password = passwordRef.current.value;
 
-        console.log(email, password);
+        const userCredentials = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+        );
+        console.log(userCredentials.user);
     };
 
     return (
