@@ -1,26 +1,58 @@
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import React, { useRef } from 'react';
-import { auth } from '../main';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { AuthContext } from '@hooks/UseAuthProvider';
+import { AUTH_SET_CREDENTIALS } from '@consts/provider';
+import { IError } from 'src/types/error';
+import LoadingComponent from '@components/LoadingComponent';
 
 function LoginContainer() {
+    const { dispatch } = useContext(AuthContext);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<IError | null>(null);
+
     const emailRef = useRef({} as HTMLInputElement);
     const passwordRef = useRef({} as HTMLInputElement);
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
+        setIsLoading(true);
+
         const email = emailRef.current.value;
         const password = passwordRef.current.value;
 
-        const userCredentials = await signInWithEmailAndPassword(
-            auth,
-            email,
-            password
-        );
-        console.log(userCredentials.user);
+        try {
+            const userCredentials = await signInWithEmailAndPassword(
+                getAuth(),
+                email,
+                password
+            );
+            if (userCredentials)
+                dispatch({
+                    type: AUTH_SET_CREDENTIALS,
+                    payload: {
+                        displayName: userCredentials.user.displayName!,
+                        email: userCredentials.user.email!,
+                        idToken: userCredentials.user.uid,
+                    },
+                });
+        } catch (error) {
+            setError(error as IError);
+        }
     };
+
+    useEffect(() => {
+        const alertError = () => {
+            if (!error) return;
+            setIsLoading(false);
+            alert(error.message);
+        };
+
+        alertError();
+    }, [error]);
 
     return (
         <div className="h-[calc(100dvh-400px)] flex justify-center items-center">
+            {isLoading && <LoadingComponent />}
             <div className="w-full flex flex-col gap-4 items-center translate-y-[-4rem] px-4">
                 <p>
                     Not a member?{' '}

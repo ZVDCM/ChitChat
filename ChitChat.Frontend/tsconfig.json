@@ -26,8 +26,8 @@
             "@consts/*": ["src/consts/*"],
             "@containers/*": ["src/containers/*"],
             "@graphql/*": ["src/graphql/*"],
+            "@hooks/*": ["src/hooks/*"],
             "@pages/*": ["src/pages/*"],
-            "@services/*": ["src/services/*"],
             "@styles/*": ["src/styles/*"],
             "@utils/*": ["src/utils/*"]
         }

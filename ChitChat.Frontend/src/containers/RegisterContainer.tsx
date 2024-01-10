@@ -1,18 +1,29 @@
-import { useMutation } from '@apollo/client';
 import Validations from '@utils/validations';
-import React, { useRef } from 'react';
-import { REGISTER } from '@graphql/mutations/users';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import LoadingComponent from '@components/LoadingComponent';
+import {
+    createUserWithEmailAndPassword,
+    getAuth,
+    updateProfile,
+} from 'firebase/auth';
+import { AuthContext } from '@hooks/UseAuthProvider';
+import { AUTH_SET_CREDENTIALS } from '@consts/provider';
+import { IError } from 'src/types/error';
 
 function RegisterContainer() {
-    const [register] = useMutation(REGISTER);
+    const { dispatch } = useContext(AuthContext);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<IError | null>(null);
 
     const usernameRef = useRef({} as HTMLInputElement);
     const emailRef = useRef({} as HTMLInputElement);
     const passwordRef = useRef({} as HTMLInputElement);
     const confirmPasswordRef = useRef({} as HTMLInputElement);
 
-    const handleSubmit = (event: React.FormEvent) => {
+    const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
+        setIsLoading(true);
+
         const username = usernameRef.current.value;
         const email = emailRef.current.value;
         const password = passwordRef.current.value;
@@ -35,18 +46,43 @@ function RegisterContainer() {
             return;
         }
 
-        register({
-            variables: {
-                displayName: username,
+        try {
+            const userCredentials = await createUserWithEmailAndPassword(
+                getAuth(),
                 email,
-                password,
-                confirmPassword,
-            },
-        });
+                password
+            );
+
+            await updateProfile(getAuth().currentUser!, {
+                displayName: username,
+            });
+
+            if (userCredentials)
+                dispatch({
+                    type: AUTH_SET_CREDENTIALS,
+                    payload: {
+                        displayName: userCredentials.user.displayName!,
+                        email: userCredentials.user.email!,
+                        idToken: userCredentials.user.uid,
+                    },
+                });
+        } catch (error) {
+            setError(error as IError);
+        }
     };
+
+    useEffect(() => {
+        const alertError = () => {
+            if (!error) return;
+            setIsLoading(false);
+            alert(error.message);
+        };
+        alertError();
+    }, [error]);
 
     return (
         <div className="h-[calc(100dvh-400px)] flex justify-center items-center px-4">
+            {isLoading && <LoadingComponent />}
             <article className="w-full max-w-[400px] border p-[2rem]">
                 <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
                     <section className="flex flex-col gap-2">
