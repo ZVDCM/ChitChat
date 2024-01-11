@@ -11,7 +11,7 @@ function HomePage() {
     const { state } = useContext(AuthContext);
 
     useEffect(() => {
-        const redirectIfUnauthenticated = () => {
+        const redirectIfUnauthenticated = (): void => {
             if (state) return;
             navigate(LOGIN);
         };

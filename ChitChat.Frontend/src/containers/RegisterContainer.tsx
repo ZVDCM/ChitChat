@@ -1,14 +1,11 @@
 import Validations from '@utils/validations';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import LoadingComponent from '@components/LoadingComponent';
-import {
-    createUserWithEmailAndPassword,
-    getAuth,
-    updateProfile,
-} from 'firebase/auth';
+import { UserCredential } from 'firebase/auth';
 import { AuthContext } from '@hooks/UseAuthProvider';
 import { AUTH_SET_CREDENTIALS } from '@consts/provider';
 import { IError } from 'src/types/error';
+import Auth from 'src/firebase/auth';
 
 function RegisterContainer() {
     const { dispatch } = useContext(AuthContext);
@@ -20,7 +17,18 @@ function RegisterContainer() {
     const passwordRef = useRef({} as HTMLInputElement);
     const confirmPasswordRef = useRef({} as HTMLInputElement);
 
-    const handleSubmit = async (event: React.FormEvent) => {
+    const setCredentials = (userCredentials: UserCredential): void => {
+        dispatch({
+            type: AUTH_SET_CREDENTIALS,
+            payload: {
+                displayName: userCredentials.user.displayName!,
+                email: userCredentials.user.email!,
+                idToken: userCredentials.user.uid,
+            },
+        });
+    };
+
+    const handleSubmit = async (event: React.FormEvent): Promise<void> => {
         event.preventDefault();
         setIsLoading(true);
 
@@ -30,49 +38,64 @@ function RegisterContainer() {
         const confirmPassword = confirmPasswordRef.current.value;
 
         if (Validations.isNotStringEmpty(username)) {
-            alert('Username cannot be empty');
+            setError({
+                code: 'VALIDATION_ERROR',
+                message: 'Username cannot be empty',
+            });
             return;
         }
         if (Validations.isInvalidEmail(email)) {
-            alert('Email must be valid');
+            setError({
+                code: 'VALIDATION_ERROR',
+                message: 'Email must be valid',
+            });
             return;
         }
         if (Validations.isInvalidPassword(password)) {
-            alert('Password must be at least 6 characters long');
+            setError({
+                code: 'VALIDATION_ERROR',
+                message: 'Password must be at least 6 characters long',
+            });
             return;
         }
         if (password !== confirmPassword) {
-            alert('Passwords do not match');
+            setError({
+                code: 'VALIDATION_ERROR',
+                message: 'Passwords do not match',
+            });
             return;
         }
 
         try {
-            const userCredentials = await createUserWithEmailAndPassword(
-                getAuth(),
-                email,
-                password
-            );
+            const userCredentials = await Auth.register(email, password);
 
-            await updateProfile(getAuth().currentUser!, {
+            const user = Auth.getCurrentUser();
+            if (!user) {
+                setError({
+                    code: 'REGISTRATION_ERROR',
+                    message: 'Registration failed',
+                });
+                return;
+            }
+            await Auth.updateProfile(user, {
                 displayName: username,
             });
 
-            if (userCredentials)
-                dispatch({
-                    type: AUTH_SET_CREDENTIALS,
-                    payload: {
-                        displayName: userCredentials.user.displayName!,
-                        email: userCredentials.user.email!,
-                        idToken: userCredentials.user.uid,
-                    },
+            if (!userCredentials) {
+                setError({
+                    code: 'REGISTRATION_ERROR',
+                    message: 'Registration failed',
                 });
+                return;
+            }
+            setCredentials(userCredentials);
         } catch (error) {
             setError(error as IError);
         }
     };
 
     useEffect(() => {
-        const alertError = () => {
+        const alertError = (): void => {
             if (!error) return;
             setIsLoading(false);
             alert(error.message);

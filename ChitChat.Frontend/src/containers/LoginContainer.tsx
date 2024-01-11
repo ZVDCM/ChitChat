@@ -1,9 +1,10 @@
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { UserCredential } from 'firebase/auth';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { AuthContext } from '@hooks/UseAuthProvider';
 import { AUTH_SET_CREDENTIALS } from '@consts/provider';
 import { IError } from 'src/types/error';
 import LoadingComponent from '@components/LoadingComponent';
+import Auth from 'src/firebase/auth';
 
 function LoginContainer() {
     const { dispatch } = useContext(AuthContext);
@@ -13,7 +14,18 @@ function LoginContainer() {
     const emailRef = useRef({} as HTMLInputElement);
     const passwordRef = useRef({} as HTMLInputElement);
 
-    const handleSubmit = async (event: React.FormEvent) => {
+    const setCredentials = (userCredentials: UserCredential): void => {
+        dispatch({
+            type: AUTH_SET_CREDENTIALS,
+            payload: {
+                displayName: userCredentials.user.displayName!,
+                email: userCredentials.user.email!,
+                idToken: userCredentials.user.uid,
+            },
+        });
+    };
+
+    const handleSubmit = async (event: React.FormEvent): Promise<void> => {
         event.preventDefault();
         setIsLoading(true);
 
@@ -21,27 +33,22 @@ function LoginContainer() {
         const password = passwordRef.current.value;
 
         try {
-            const userCredentials = await signInWithEmailAndPassword(
-                getAuth(),
-                email,
-                password
-            );
-            if (userCredentials)
-                dispatch({
-                    type: AUTH_SET_CREDENTIALS,
-                    payload: {
-                        displayName: userCredentials.user.displayName!,
-                        email: userCredentials.user.email!,
-                        idToken: userCredentials.user.uid,
-                    },
+            const userCredentials = await Auth.login(email, password);
+            if (!userCredentials) {
+                setError({
+                    code: 'REGISTRATION_ERROR',
+                    message: 'Registration failed',
                 });
+                return;
+            }
+            setCredentials(userCredentials);
         } catch (error) {
             setError(error as IError);
         }
     };
 
     useEffect(() => {
-        const alertError = () => {
+        const alertError = (): void => {
             if (!error) return;
             setIsLoading(false);
             alert(error.message);

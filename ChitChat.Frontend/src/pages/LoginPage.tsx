@@ -9,8 +9,9 @@ import { HOME } from '@consts/urls';
 function LoginPage() {
     const navigate = useNavigate();
     const { state } = useContext(AuthContext);
+    
     useEffect(() => {
-        const redirectIfAuthenticated = () => {
+        const redirectIfAuthenticated = (): void => {
             if (!state) return;
             navigate(HOME);
         };

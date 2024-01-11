@@ -3,21 +3,25 @@ import LoadingComponent from '@components/LoadingComponent';
 import { AuthContext } from '@hooks/UseAuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { LOGIN } from '@consts/urls';
-import { getAuth, signOut } from 'firebase/auth';
 import { AUTH_SET_CREDENTIALS } from '@consts/provider';
+import Auth from 'src/firebase/auth';
 
 function HomeContainer() {
     const navigate = useNavigate();
     const { state, dispatch } = useContext(AuthContext);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleLogout = async () => {
-        setIsLoading(true);
+    const setCredentials = (): void => {
         dispatch({
             type: AUTH_SET_CREDENTIALS,
             payload: null,
         });
-        signOut(getAuth());
+    };
+
+    const handleLogout = async (): Promise<void> => {
+        setIsLoading(true);
+        await Auth.logout();
+        setCredentials();
         setIsLoading(false);
         navigate(LOGIN);
     };

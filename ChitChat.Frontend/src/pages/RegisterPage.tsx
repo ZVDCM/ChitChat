@@ -10,7 +10,7 @@ function RegisterPage() {
     const navigate = useNavigate();
     const { state } = useContext(AuthContext);
     useEffect(() => {
-        const redirectIfAuthenticated = () => {
+        const redirectIfAuthenticated = (): void => {
             if (!state) return;
             navigate(HOME);
         };
