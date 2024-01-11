@@ -3,7 +3,7 @@ import LoginPage from '@pages/LoginPage';
 import RegisterPage from '@pages/RegisterPage';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { AuthContext } from '@hooks/UseAuthProvider';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { User, getAuth, onAuthStateChanged } from 'firebase/auth';
 import { HOME, LOGIN, REGISTER } from '@consts/urls';
 import { AUTH_SET_CREDENTIALS } from '@consts/provider';
 import NotFound from '@pages/NotFound';
@@ -32,8 +32,7 @@ function App() {
     const { dispatch } = useContext(AuthContext);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(getAuth(), (user) => {
-            if (!user) return;
+        const setCredentials = (user: User): void => {
             dispatch({
                 type: AUTH_SET_CREDENTIALS,
                 payload: {
@@ -42,6 +41,10 @@ function App() {
                     idToken: user.uid,
                 },
             });
+        };
+        const unsubscribe = onAuthStateChanged(getAuth(), (user) => {
+            if (!user) return;
+            setCredentials(user);
         });
 
         return () => unsubscribe();
