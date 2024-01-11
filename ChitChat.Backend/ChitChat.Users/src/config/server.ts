@@ -3,7 +3,7 @@ import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHt
 import { mergeTypeDefs, mergeResolvers } from '@graphql-tools/merge';
 import { Express } from 'express';
 import http from 'http';
-import { chatTypeDef, chatResolver } from '../graphql/chatSchema.js';
+import { userTypeDef, userResolver } from '../graphql/userSchema.js';
 
 interface IReturn {
     apolloServer: ApolloServer<BaseContext>;
@@ -13,8 +13,8 @@ interface IReturn {
 const server = (app: Express): IReturn => {
     const httpServer = http.createServer(app);
 
-    const typeDefs = mergeTypeDefs([chatTypeDef]);
-    const resolvers = mergeResolvers([chatResolver]);
+    const typeDefs = mergeTypeDefs([userTypeDef]);
+    const resolvers = mergeResolvers([userResolver]);
 
     const apolloServer = new ApolloServer({
         typeDefs,
