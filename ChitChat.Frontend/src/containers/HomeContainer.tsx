@@ -4,7 +4,7 @@ import { AuthContext } from '@hooks/UseAuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { LOGIN } from '@consts/urls';
 import { AUTH_SET_CREDENTIALS } from '@consts/provider';
-import Auth from 'src/firebase/auth';
+import Auth from '@_firebase/auth';
 
 function HomeContainer() {
     const navigate = useNavigate();

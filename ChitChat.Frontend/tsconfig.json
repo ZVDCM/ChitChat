@@ -25,10 +25,12 @@
             "@components/*": ["src/components/*"],
             "@consts/*": ["src/consts/*"],
             "@containers/*": ["src/containers/*"],
+            "@_firebase/*": ["src/firebase/*"],
             "@graphql/*": ["src/graphql/*"],
             "@hooks/*": ["src/hooks/*"],
             "@pages/*": ["src/pages/*"],
             "@styles/*": ["src/styles/*"],
+            "@_types/*": ["src/types/*"],
             "@utils/*": ["src/utils/*"]
         }
     },

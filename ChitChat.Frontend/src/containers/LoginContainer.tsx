@@ -2,9 +2,9 @@ import { UserCredential } from 'firebase/auth';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { AuthContext } from '@hooks/UseAuthProvider';
 import { AUTH_SET_CREDENTIALS } from '@consts/provider';
-import { IError } from 'src/types/error';
+import { IError } from '@_types/error';
 import LoadingComponent from '@components/LoadingComponent';
-import Auth from 'src/firebase/auth';
+import Auth from '@_firebase/auth';
 
 function LoginContainer() {
     const { dispatch } = useContext(AuthContext);

@@ -4,8 +4,8 @@ import LoadingComponent from '@components/LoadingComponent';
 import { UserCredential } from 'firebase/auth';
 import { AuthContext } from '@hooks/UseAuthProvider';
 import { AUTH_SET_CREDENTIALS } from '@consts/provider';
-import { IError } from 'src/types/error';
-import Auth from 'src/firebase/auth';
+import { IError } from '@_types/error';
+import Auth from '@_firebase/auth';
 
 function RegisterContainer() {
     const { dispatch } = useContext(AuthContext);
