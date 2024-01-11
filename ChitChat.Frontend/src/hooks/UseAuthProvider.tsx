@@ -1,17 +1,19 @@
 import React, { createContext, useReducer } from 'react';
-import { AUTH_SET_CREDENTIALS } from '@consts/provider';
+import { AUTH_SET_CREDENTIALS } from '@consts/actions';
+
+type user = { uid: string; displayName: string; email: string };
+type token = string;
 
 interface IInitialState {
-    displayName: string;
-    email: string;
-    idToken: string;
+    user: user;
+    token: token;
 }
 
 const initialState: IInitialState | null = null;
 
 interface IAction {
     type: string;
-    payload: IInitialState | null;
+    payload?: IInitialState;
 }
 
 interface IContext {
@@ -24,14 +26,19 @@ export const AuthContext = createContext<IContext>({
     dispatch: () => {},
 });
 
-const authReducer = (state: IInitialState | null, action: IAction) => {
+const authReducer = (
+    state: IInitialState | null,
+    action: IAction
+): IInitialState | null => {
+    if (!action.payload) return null;
+
     switch (action.type) {
-        case AUTH_SET_CREDENTIALS:
-            if (!action.payload) return null;
+        case AUTH_SET_CREDENTIALS: {
             return {
                 ...state,
                 ...action.payload,
             };
+        }
         default:
             return state;
     }

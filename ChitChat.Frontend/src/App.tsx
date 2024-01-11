@@ -5,7 +5,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { AuthContext } from '@hooks/UseAuthProvider';
 import { User, getAuth, onAuthStateChanged } from 'firebase/auth';
 import { HOME, LOGIN, REGISTER } from '@consts/urls';
-import { AUTH_SET_CREDENTIALS } from '@consts/provider';
+import { AUTH_SET_CREDENTIALS } from '@consts/actions';
 import NotFound from '@pages/NotFound';
 import HomePage from '@pages/HomePage';
 
@@ -32,19 +32,22 @@ function App() {
     const { dispatch } = useContext(AuthContext);
 
     useEffect(() => {
-        const setCredentials = (user: User): void => {
+        const setCredentials = async (user: User): Promise<void> => {
             dispatch({
                 type: AUTH_SET_CREDENTIALS,
                 payload: {
-                    displayName: user.displayName!,
-                    email: user.email!,
-                    idToken: user.uid,
+                    user: {
+                        displayName: user.displayName!,
+                        email: user.email!,
+                        uid: user.uid,
+                    },
+                    token: await user.getIdToken(),
                 },
             });
         };
-        const unsubscribe = onAuthStateChanged(getAuth(), (user) => {
+        const unsubscribe = onAuthStateChanged(getAuth(), async (user) => {
             if (!user) return;
-            setCredentials(user);
+            await setCredentials(user);
         });
 
         return () => unsubscribe();

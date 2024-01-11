@@ -9,6 +9,7 @@ import { HOME } from '@consts/urls';
 function RegisterPage() {
     const navigate = useNavigate();
     const { state } = useContext(AuthContext);
+    
     useEffect(() => {
         const redirectIfAuthenticated = (): void => {
             if (!state) return;

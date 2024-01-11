@@ -1,7 +1,7 @@
 import { UserCredential } from 'firebase/auth';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { AuthContext } from '@hooks/UseAuthProvider';
-import { AUTH_SET_CREDENTIALS } from '@consts/provider';
+import { AUTH_SET_CREDENTIALS } from '@consts/actions';
 import { IError } from '@_types/error';
 import LoadingComponent from '@components/LoadingComponent';
 import Auth from '@_firebase/auth';
@@ -14,13 +14,18 @@ function LoginContainer() {
     const emailRef = useRef({} as HTMLInputElement);
     const passwordRef = useRef({} as HTMLInputElement);
 
-    const setCredentials = (userCredentials: UserCredential): void => {
+    const setCredentials = async (
+        userCredentials: UserCredential
+    ): Promise<void> => {
         dispatch({
             type: AUTH_SET_CREDENTIALS,
             payload: {
-                displayName: userCredentials.user.displayName!,
-                email: userCredentials.user.email!,
-                idToken: userCredentials.user.uid,
+                user: {
+                    displayName: userCredentials.user.displayName!,
+                    email: userCredentials.user.email!,
+                    uid: userCredentials.user.uid,
+                },
+                token: await userCredentials.user.getIdToken(),
             },
         });
     };

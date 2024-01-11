@@ -19,3 +19,38 @@ body,
 .page-header {
     font-size: clamp(3rem, 1.6667rem + 10.6667vw, 5rem);
 }
+
+#user-list {
+    position: relative;
+}
+#user-list:not(:has(.user-item))::after {
+    content: 'No users found';
+    position: absolute;
+    width: 14ch;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1rem;
+    color: #ccc;
+}
+
+#user-list .user-item {
+    border-bottom: 1px solid #ccc;
+}
+#user-list .user-item:last-child {
+    border-bottom: none;
+}
+
+#chat {
+    position: relative;
+}
+#chat:not(:has(.user-item))::after {
+    content: 'Select a user';
+    position: absolute;
+    width: 11ch;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1rem;
+    color: #ccc;
+}

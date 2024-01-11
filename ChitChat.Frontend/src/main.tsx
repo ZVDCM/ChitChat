@@ -17,7 +17,7 @@ const firebaseConfig = {
 };
 initializeApp(firebaseConfig);
 
-const client = new ApolloClient({
+export const client = new ApolloClient({
     uri: BACKEND_URL,
     cache: new InMemoryCache(),
 });
