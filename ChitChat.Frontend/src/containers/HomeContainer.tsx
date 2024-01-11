@@ -89,7 +89,7 @@ function HomeContainer() {
                                 id="user-list"
                                 className="w-[30%] border-r overflow-auto"
                             >
-                                {users.length &&
+                                {users.length !== 0 &&
                                     users.map((user) => (
                                         <UserComponent
                                             key={user.uid}

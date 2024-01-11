@@ -1,5 +1,5 @@
 import { getAuth } from 'firebase-admin/auth';
-import { User } from '../models/users.js';
+import { User } from '../models/user.js';
 
 class Users {
     static async getAllUsers(): Promise<User[]> {
