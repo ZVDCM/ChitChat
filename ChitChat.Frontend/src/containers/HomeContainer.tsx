@@ -7,14 +7,19 @@ import Auth from '@_firebase/auth';
 import { useQuery } from '@apollo/client';
 import { GET_ALL_USERS } from '@graphql/queries/users';
 import { AUTH_SET_CREDENTIALS } from '@consts/actions';
-import { User } from '../models/user';
-import UserComponent from '@components/UserComponent';
+import { IUser } from '../models/user';
+import UserComponent, { IUserItemState } from '@components/UserComponent';
 
+export interface IUserItemStates {
+    [key: string]: IUserItemState;
+}
 function HomeContainer() {
     const navigate = useNavigate();
     const { state, dispatch } = useContext(AuthContext);
     const [isLoading, setIsLoading] = useState(false);
-    const [users, setUsers] = useState<User[]>([]);
+    const [targetUser, setTargetUser] = useState<IUser | null>(null);
+    const [userItemStates, setUserItemStates] =
+        useState<IUserItemStates | null>(null);
 
     const { data, loading, error } = useQuery(GET_ALL_USERS, {
         context: {
@@ -38,15 +43,33 @@ function HomeContainer() {
         navigate(LOGIN);
     };
 
+    const handleUserClicked = (user: IUser) => {
+        setTargetUser(user);
+        setUserItemStates((prev) => {
+            if (!prev) return prev;
+            prev[user.uid].isActive = true;
+            Object.keys(prev).forEach((key) => {
+                if (key === user.uid) return;
+                prev[key].isActive = false;
+            });
+            return prev;
+        });
+    };
+
     useEffect(() => {
         const populateUsers = (): void => {
             if (!data) return;
-            const users = data as { getAllUsers: User[] };
-            setUsers(
-                users.getAllUsers.map(
-                    (user) => new User(user.uid, user.displayName, user.email)
-                )
-            );
+            const users = data as { getAllUsers: IUser[] };
+            setUserItemStates((prev) => {
+                prev = {};
+                users.getAllUsers.forEach((user) => {
+                    prev[user.uid] = {
+                        user,
+                        isActive: false,
+                    };
+                });
+                return prev;
+            });
         };
         populateUsers();
     }, [data]);
@@ -76,12 +99,7 @@ function HomeContainer() {
                     <article className="h-full w-full max-w-[1000px] p-[2rem]">
                         <section className="h-[2rem] flex justify-between items-center">
                             <span>@{state.user.displayName}</span>
-                            <button
-                                className="hover:underline"
-                                onClick={handleLogout}
-                            >
-                                Logout
-                            </button>
+                            <button onClick={handleLogout}>Logout</button>
                         </section>
                         <hr className="my-4" />
                         <section className="h-[calc(100%-2rem)] flex items-stretch">
@@ -89,15 +107,48 @@ function HomeContainer() {
                                 id="user-list"
                                 className="w-[30%] border-r overflow-auto"
                             >
-                                {users.length !== 0 &&
-                                    users.map((user) => (
+                                {userItemStates &&
+                                    Object.keys(userItemStates).map((key) => (
                                         <UserComponent
-                                            key={user.uid}
-                                            user={user}
+                                            key={key}
+                                            user={userItemStates[key].user}
+                                            isActive={
+                                                userItemStates[key].isActive
+                                            }
+                                            handleUserClicked={
+                                                handleUserClicked
+                                            }
                                         />
                                     ))}
                             </div>
-                            <div id="chat" className="w-[70%]"></div>
+                            <div id="chat" className="w-[70%]">
+                                {targetUser ? (
+                                    <div className="h-full">
+                                        <div
+                                            id="message-list"
+                                            className="h-[90%] overflow-auto"
+                                        ></div>
+                                        <div className="h-[10%]">
+                                            <form className="flex gap-4">
+                                                <input
+                                                    type="text"
+                                                    className="w-full p-2 px-4 border border-l-0 outline-none"
+                                                    placeholder="Type message here..."
+                                                />
+                                                <button type="submit">
+                                                    Send
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="h-full flex justify-center items-center">
+                                        <span className="text-[#ccc] translate-y-[-4rem]">
+                                            Select a user
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
                         </section>
                     </article>
                 </div>

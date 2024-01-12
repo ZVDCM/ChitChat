@@ -16,6 +16,11 @@ body,
     min-height: 100dvh;
 }
 
+a:hover,
+button:hover {
+    text-decoration: underline;
+}
+
 .page-header {
     font-size: clamp(3rem, 1.6667rem + 10.6667vw, 5rem);
 }
@@ -26,31 +31,43 @@ body,
 #user-list:not(:has(.user-item))::after {
     content: 'No users found';
     position: absolute;
-    width: 14ch;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-size: 1rem;
     color: #ccc;
+    transform: translateY(-4rem);
 }
 
 #user-list .user-item {
-    border-bottom: 1px solid #ccc;
+    display: flex;
+    padding: 1rem;
+    flex-direction: column;
+    justify-content: center;
+    cursor: pointer;
 }
-#user-list .user-item:last-child {
-    border-bottom: none;
+#user-list .user-item.active {
+    outline: 1px solid;
+    outline-offset: -5px;
+}
+#user-list .user-item:hover {
+    background: #ccc;
 }
 
-#chat {
+#message-list {
     position: relative;
 }
-#chat:not(:has(.user-item))::after {
-    content: 'Select a user';
+#message-list:not(:has(.message-item))::after {
+    content: 'No messages found';
     position: absolute;
-    width: 11ch;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-size: 1rem;
     color: #ccc;
+    transform: translateY(-2rem);
 }
