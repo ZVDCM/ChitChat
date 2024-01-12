@@ -17,7 +17,9 @@ app.use(
         credentials: true,
     }),
     express.json(),
-    expressMiddleware(apolloServer)
+    expressMiddleware(apolloServer, {
+        context: async ({ req }) => ({ token: req.headers.token }),
+    })
 );
 
 const start = async () => {

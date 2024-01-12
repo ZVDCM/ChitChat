@@ -1,7 +1,2 @@
-export const chatTypeDef = `#graphql
-    type Query {
-        _dummy: String
-    }
-`;
-
+export const chatTypeDef = `#graphql`;
 export const chatResolver = {};
