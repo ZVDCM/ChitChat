@@ -1,8 +1,12 @@
 import { DecodedIdToken, getAuth } from 'firebase-admin/auth';
+import { unauthorized } from '../consts/errors.js';
 
 class Auth {
-    static async verifyIdToken(token: string): Promise<DecodedIdToken> {
-        return await getAuth().verifyIdToken(token);
+    static async isAuth(token: string | undefined): Promise<DecodedIdToken> {
+        if (!token) throw unauthorized();
+        const credentials = await getAuth().verifyIdToken(token);
+        if (!credentials) throw unauthorized();
+        return credentials;
     }
 }
 

@@ -32,8 +32,9 @@ class RabbitMQConnectionPool implements IConnectionPool {
     }
 
     public async consume(
-        queueName: string
-    ): Promise<amqp.ConsumeMessage | null> {
+        queueName: string,
+        callback: (data: string | null) => Promise<any>
+    ): Promise<void> {
         let connection: amqp.Connection | null = null;
         try {
             connection = await this.getConnection();
@@ -44,12 +45,12 @@ class RabbitMQConnectionPool implements IConnectionPool {
                 queueName,
                 (message) => {
                     logger.info('Message received successfully.');
-                    if (message === null) {
+                    if (!message) {
                         logger.info('No message received.');
-                        return null;
+                        return callback(null);
                     }
                     channel.ack(message);
-                    return message;
+                    callback(message.content.toString());
                 },
                 { noAck: false }
             );
@@ -58,7 +59,6 @@ class RabbitMQConnectionPool implements IConnectionPool {
         } finally {
             if (connection) this.releaseConnection(connection);
         }
-        return null;
     }
 
     private async createConnection(): Promise<amqp.Connection> {

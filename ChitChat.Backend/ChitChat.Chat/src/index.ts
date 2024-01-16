@@ -6,6 +6,7 @@ import { expressMiddleware } from '@apollo/server/express4';
 import server from './config/server.js';
 import startDatabase from './config/database.js';
 import RabbitMQConnectionPool from './config/rabbitMQ.js';
+import userMessaged from './consume/userMessaged.js';
 
 const app = express();
 const { apolloServer, httpServer } = server(app);
@@ -23,7 +24,7 @@ app.use(
     })
 );
 
-const start = async (): Promise<RabbitMQConnectionPool | false> => {
+const start = async (): Promise<RabbitMQConnectionPool | void> => {
     try {
         await startDatabase();
         logger.info(`Database ready`);
@@ -43,7 +44,8 @@ const start = async (): Promise<RabbitMQConnectionPool | false> => {
     } catch (error) {
         logger.error(error);
     }
-    return false;
 };
 
-export const rabbitMQ = await start();
+export const rabbitMQ = (await start()) as RabbitMQConnectionPool;
+
+userMessaged();

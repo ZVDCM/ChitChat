@@ -23,7 +23,7 @@ app.use(
     })
 );
 
-const start = async (): Promise<RabbitMQConnectionPool | false> => {
+const start = async (): Promise<RabbitMQConnectionPool | void> => {
     try {
         await startDatabase();
         logger.info(`Database ready`);
@@ -43,7 +43,6 @@ const start = async (): Promise<RabbitMQConnectionPool | false> => {
     } catch (error) {
         logger.error(error);
     }
-    return false;
 };
 
-export const rabbitMQ = await start();
+export const rabbitMQ = (await start()) as RabbitMQConnectionPool;
