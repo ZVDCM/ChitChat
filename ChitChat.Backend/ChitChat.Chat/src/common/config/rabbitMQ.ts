@@ -15,7 +15,7 @@ class RabbitMQConnectionPool implements IConnectionPool {
         this.connections = [];
     }
 
-    public async send(queueName: string, message: any): Promise<void> {
+    public async send(queueName: string, message: string): Promise<void> {
         let connection: amqp.Connection | null = null;
         try {
             connection = await this.getConnection();

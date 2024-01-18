@@ -48,6 +48,7 @@ const logger = winston.createLogger({
             maxFiles: process.env.LOGGER_MAX_FILES,
         }),
     ],
+    exitOnError: false,
 });
 
 export default logger;

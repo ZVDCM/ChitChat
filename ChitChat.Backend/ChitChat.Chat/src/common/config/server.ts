@@ -4,7 +4,7 @@ import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHt
 import { mergeTypeDefs, mergeResolvers } from '@graphql-tools/merge';
 import { Express } from 'express';
 import http from 'http';
-import { chatTypeDef, chatResolver } from '../graphql/chatSchema.js';
+import { chatResolver, chatTypeDef } from '../../graphql/chatSchema.js';
 
 interface IReturn {
     apolloServer: ApolloServer<BaseContext>;

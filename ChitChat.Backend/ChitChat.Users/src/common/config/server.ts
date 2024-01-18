@@ -4,7 +4,7 @@ import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHt
 import { mergeTypeDefs, mergeResolvers } from '@graphql-tools/merge';
 import { Express } from 'express';
 import http from 'http';
-import { userTypeDef, userResolver } from '../graphql/userSchema.js';
+import { userTypeDef, userResolver } from '../../graphql/userSchema.js';
 
 interface IReturn {
     apolloServer: ApolloServer<BaseContext>;

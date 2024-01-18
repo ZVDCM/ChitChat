@@ -1,11 +1,11 @@
 import 'dotenv/config';
-import logger from './utils/logger.js';
+import logger from './common/utils/logger.js';
 import express from 'express';
 import cors from 'cors';
 import { expressMiddleware } from '@apollo/server/express4';
-import server from './config/server.js';
-import startDatabase from './config/database.js';
-import RabbitMQConnectionPool from './config/rabbitMQ.js';
+import server from './common/config/server.js';
+import startDatabase from './common/config/database.js';
+import RabbitMQConnectionPool from './common/config/rabbitMQ.js';
 
 const app = express();
 const { apolloServer, httpServer } = server(app);

@@ -6,7 +6,7 @@ interface IConnectionPool {
     connections: amqp.Connection[];
 }
 
-export class RabbitMQConnectionPool implements IConnectionPool {
+class RabbitMQConnectionPool implements IConnectionPool {
     uri: string;
     connections: amqp.Connection[];
 
@@ -15,7 +15,7 @@ export class RabbitMQConnectionPool implements IConnectionPool {
         this.connections = [];
     }
 
-    public async send(queueName: string, message: any): Promise<void> {
+    public async send(queueName: string, message: string): Promise<void> {
         let connection: amqp.Connection | null = null;
         try {
             connection = await this.getConnection();
@@ -32,8 +32,9 @@ export class RabbitMQConnectionPool implements IConnectionPool {
     }
 
     public async consume(
-        queueName: string
-    ): Promise<amqp.ConsumeMessage | null> {
+        queueName: string,
+        callback: (data: string | null) => Promise<any>
+    ): Promise<void> {
         let connection: amqp.Connection | null = null;
         try {
             connection = await this.getConnection();
@@ -44,12 +45,12 @@ export class RabbitMQConnectionPool implements IConnectionPool {
                 queueName,
                 (message) => {
                     logger.info('Message received successfully.');
-                    if (message === null) {
+                    if (!message) {
                         logger.info('No message received.');
-                        return null;
+                        return callback(null);
                     }
                     channel.ack(message);
-                    return message;
+                    callback(message.content.toString());
                 },
                 { noAck: false }
             );
@@ -58,7 +59,6 @@ export class RabbitMQConnectionPool implements IConnectionPool {
         } finally {
             if (connection) this.releaseConnection(connection);
         }
-        return null;
     }
 
     private async createConnection(): Promise<amqp.Connection> {
