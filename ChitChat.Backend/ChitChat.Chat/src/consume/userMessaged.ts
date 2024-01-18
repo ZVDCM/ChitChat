@@ -10,7 +10,7 @@ const userMessaged = () => {
         const { chatId, users, message, createdAt } = JSON.parse(
             data
         ) as IMessageChat;
-        await Chat.createChat(chatId, users, [message], createdAt);
+        await Chat.createChat(chatId, users, message, createdAt);
     });
 };
 

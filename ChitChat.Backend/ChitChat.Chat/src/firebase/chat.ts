@@ -9,12 +9,20 @@ class Chat {
     static async createChat(
         chatId: string,
         users: IUser[],
-        messages: IMessage[],
+        message: IMessage,
         createdAt: string
     ): Promise<void> {
         const db = getFirestore();
-        const data = { users, messages, createdAt };
-        await db.collection(collection).doc(chatId).set(data);
+        const docRef = db.collection(collection).doc(chatId);
+        const snapshot = await docRef.get();
+        if (!snapshot.exists) {
+            const data = { users, messages: [message], createdAt };
+            await db.collection(collection).doc(chatId).set(data);
+            return;
+        }
+        await docRef.update({
+            messages: [message, ...snapshot.data()?.messages],
+        });
     }
     static async addMessage(chatId: string, message: IMessage): Promise<void> {
         const db = getFirestore();
