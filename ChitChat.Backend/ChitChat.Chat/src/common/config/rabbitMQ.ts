@@ -23,7 +23,7 @@ class RabbitMQConnectionPool implements IConnectionPool {
             await channel.assertQueue(queueName, { durable: true });
 
             channel.sendToQueue(queueName, Buffer.from(message));
-            logger.info('Message sent successfully.');
+            logger.info('Message sent successfully');
         } catch (error) {
             logger.error('Publish message error:', error);
         } finally {
@@ -44,9 +44,9 @@ class RabbitMQConnectionPool implements IConnectionPool {
             channel.consume(
                 queueName,
                 (message) => {
-                    logger.info('Message received successfully.');
+                    logger.info('Message received successfully');
                     if (!message) {
-                        logger.info('No message received.');
+                        logger.info('No message received');
                         return callback(null);
                     }
                     channel.ack(message);
@@ -64,7 +64,7 @@ class RabbitMQConnectionPool implements IConnectionPool {
     private async createConnection(): Promise<amqp.Connection> {
         const connection = await amqp.connect(this.uri);
         this.connections.push(connection);
-        logger.info('New RabbitMQ connection created.');
+        logger.info('New RabbitMQ connection created');
         return connection;
     }
 
@@ -74,13 +74,13 @@ class RabbitMQConnectionPool implements IConnectionPool {
         }
 
         const connection = this.connections.pop();
-        logger.info('Reusing existing RabbitMQ connection from the pool.');
+        logger.info('Reusing existing RabbitMQ connection from the pool');
         return connection!;
     }
 
     private releaseConnection(connection: amqp.Connection): void {
         this.connections.push(connection);
-        logger.info('RabbitMQ connection released back to the pool.');
+        logger.info('RabbitMQ connection released back to the pool');
     }
 }
 

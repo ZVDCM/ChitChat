@@ -3,10 +3,8 @@ import { IMessage } from '../common/models/message.js';
 import { IUser } from '../common/models/user.js';
 
 const collection = 'chats';
-const subCollectionMessage = 'messages';
-
 class Chat {
-    static async createChat(
+    static async message(
         chatId: string,
         users: IUser[],
         message: IMessage,
@@ -23,14 +21,6 @@ class Chat {
         await docRef.update({
             messages: [message, ...snapshot.data()?.messages],
         });
-    }
-    static async addMessage(chatId: string, message: IMessage): Promise<void> {
-        const db = getFirestore();
-        await db
-            .collection(collection)
-            .doc(chatId)
-            .collection(subCollectionMessage)
-            .add(message);
     }
 }
 

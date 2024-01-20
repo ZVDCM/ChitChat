@@ -2,10 +2,10 @@ import moment from 'moment';
 import { IContext } from '../common/config/server.js';
 import Auth from '../firebase/auth.js';
 import Users from '../firebase/users.js';
-import { rabbitMQ } from '../index.js';
 import { IUser } from '../common/models/user.js';
 import { Message } from '../common/models/message.js';
 import MessageChat from '../common/events/messageChat.js';
+import { rabbitMQ } from '../index.js';
 
 export const userTypeDef = `#graphql
     type User{
@@ -35,7 +35,7 @@ export const userTypeDef = `#graphql
     }
 `;
 
-const queueName = 'users';
+const queueName = 'USERS';
 interface IMessageChat {
     input: {
         chatId: string | null;

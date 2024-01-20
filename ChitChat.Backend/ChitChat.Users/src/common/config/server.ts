@@ -3,12 +3,12 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import { mergeTypeDefs, mergeResolvers } from '@graphql-tools/merge';
 import { Express } from 'express';
-import http from 'http';
+import { createServer, Server } from 'http';
 import { userTypeDef, userResolver } from '../../graphql/userSchema.js';
 
 interface IReturn {
     apolloServer: ApolloServer<BaseContext>;
-    httpServer: http.Server;
+    httpServer: Server;
 }
 
 export interface IContext {
@@ -16,7 +16,7 @@ export interface IContext {
 }
 
 const server = (app: Express): IReturn => {
-    const httpServer = http.createServer(app);
+    const httpServer = createServer(app);
 
     const typeDefs = mergeTypeDefs([userTypeDef]);
     const resolvers = mergeResolvers([userResolver]);
