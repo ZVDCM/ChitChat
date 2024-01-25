@@ -1,10 +1,11 @@
 import { getAuth } from 'firebase-admin/auth';
-import { User } from '../common/models/user.js';
+import { IUser, User } from '../common/models/user.js';
 
 class Users {
-    static async getAllUsers(): Promise<User[]> {
-        const users = await getAuth().listUsers();
-        return users.users.map((user) => {
+    static async getAllUsers(userUid: string): Promise<IUser[]> {
+        const result = await getAuth().listUsers();
+        const users = result.users.filter((user) => user.uid !== userUid);
+        return users.map((user) => {
             return new User(user.uid, user.displayName!, user.email!);
         });
     }

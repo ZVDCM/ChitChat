@@ -1,6 +1,10 @@
 import { withFilter } from 'graphql-subscriptions';
 import { pubSub } from '../index.js';
 import { IMessage } from '../common/models/message.js';
+import { IContext } from '../common/config/server.js';
+import Auth from '../firebase/auth.js';
+import Chat from '../firebase/chat.js';
+import { User } from '../common/models/user.js';
 
 export const chatTypeDef = `#graphql
     type User{
@@ -28,7 +32,7 @@ export const chatTypeDef = `#graphql
     }
 
     type Query{
-        _dummy: Boolean
+        getAllChats: [Chat!]
     }
 
     type Subscription {
@@ -44,6 +48,18 @@ interface IMessageAdded {
     };
 }
 export const chatResolver = {
+    Query: {
+        getAllChats: async (_: any, __: any, context: IContext) => {
+            const credentials = await Auth.isAuth(context.token);
+            const user = new User(
+                credentials.uid,
+                credentials.name,
+                credentials.email!
+            );
+            const chats = Chat.getAllChats(user);
+            return chats;
+        },
+    },
     Subscription: {
         messageAdded: {
             subscribe: withFilter(

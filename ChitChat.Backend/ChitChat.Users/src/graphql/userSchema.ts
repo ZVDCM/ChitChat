@@ -47,8 +47,8 @@ export const userResolver = {
     Query: {
         async getAllUsers(_: any, __: any, context: IContext) {
             const credentials = await Auth.isAuth(context.token);
-            const users = await Users.getAllUsers();
-            return users.filter((user) => user.uid !== credentials.uid);
+            const users = await Users.getAllUsers(credentials.uid);
+            return users;
         },
     },
     Mutation: {
