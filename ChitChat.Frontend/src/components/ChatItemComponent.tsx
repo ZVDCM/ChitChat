@@ -19,7 +19,7 @@ function ChatItemComponent({ chat, isActive, handleChatClicked }: IProps) {
     return (
         <div
             id={chat.id}
-            className={`user-item border-b last:border-b-0 ${
+            className={`chat-item border-b last:border-b-0 ${
                 isActive ? 'active' : ''
             }`}
             onClick={handleClick}
