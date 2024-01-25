@@ -28,6 +28,7 @@
             "@_firebase/*": ["src/firebase/*"],
             "@graphql/*": ["src/graphql/*"],
             "@hooks/*": ["src/hooks/*"],
+            "@models/*": ["src/models/*"],
             "@pages/*": ["src/pages/*"],
             "@styles/*": ["src/styles/*"],
             "@_types/*": ["src/types/*"],

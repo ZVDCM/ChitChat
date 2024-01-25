@@ -13,6 +13,7 @@ export default defineConfig({
             '@_firebase': path.resolve(__dirname, './src/firebase'),
             '@graphql': path.resolve(__dirname, './src/graphql'),
             '@hooks': path.resolve(__dirname, './src/hooks'),
+            '@models': path.resolve(__dirname, './src/models'),
             '@pages': path.resolve(__dirname, './src/pages'),
             '@styles': path.resolve(__dirname, './src/styles'),
             '@_types': path.resolve(__dirname, './src/types'),

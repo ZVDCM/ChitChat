@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import '@styles/index.css';
 import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
-import { BACKEND_URL } from '@consts/server';
+import { CHAT_URL, USERS_URL } from '@consts/server';
 import { initializeApp } from 'firebase/app';
 import UseAuthProvider from '@hooks/UseAuthProvider';
 import App from './App';
@@ -17,17 +17,23 @@ const firebaseConfig = {
 };
 initializeApp(firebaseConfig);
 
-export const client = new ApolloClient({
-    uri: BACKEND_URL,
+export const userClient = new ApolloClient({
+    uri: USERS_URL,
+    cache: new InMemoryCache(),
+});
+export const chatClient = new ApolloClient({
+    uri: CHAT_URL,
     cache: new InMemoryCache(),
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-        <ApolloProvider client={client}>
-            <UseAuthProvider>
-                <App />
-            </UseAuthProvider>
+        <ApolloProvider client={userClient}>
+            <ApolloProvider client={chatClient}>
+                <UseAuthProvider>
+                    <App />
+                </UseAuthProvider>
+            </ApolloProvider>
         </ApolloProvider>
     </React.StrictMode>
 );

@@ -1,17 +1,16 @@
+import { IUser } from '@models/user';
 import React from 'react';
-import { IUser } from '../models/user';
 
 interface IProps {
     user: IUser;
     isActive: boolean;
     handleUserClicked: (user: IUser) => void;
 }
-
 export interface IUserItemState {
     user: IUser;
     isActive: boolean;
 }
-function UserComponent({ user, isActive, handleUserClicked }: IProps) {
+function UserItemComponent({ user, isActive, handleUserClicked }: IProps) {
     const handleClick = () => {
         handleUserClicked(user);
     };
@@ -30,4 +29,4 @@ function UserComponent({ user, isActive, handleUserClicked }: IProps) {
     );
 }
 
-export default UserComponent;
+export default UserItemComponent;

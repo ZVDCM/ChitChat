@@ -5,28 +5,36 @@ import { useNavigate } from 'react-router-dom';
 import { LOGIN } from '@consts/urls';
 import Auth from '@_firebase/auth';
 import { useQuery } from '@apollo/client';
-import { GET_ALL_USERS } from '@graphql/queries/users';
 import { AUTH_SET_CREDENTIALS } from '@consts/actions';
-import { IUser } from '../models/user';
-import UserComponent, { IUserItemState } from '@components/UserComponent';
+import { IUserItemState } from '@components/UserItemComponent';
+import { GET_ALL_CHATS } from '@graphql/queries/chats';
+import { IChat } from '@models/chat';
+import ChatItemComponent, {
+    IChatItemState,
+} from '@components/ChatItemComponent';
+import { chatClient } from '../main';
 
 export interface IUserItemStates {
     [key: string]: IUserItemState;
+}
+export interface IChatItemStates {
+    [key: string]: IChatItemState;
 }
 function HomeContainer() {
     const navigate = useNavigate();
     const { state, dispatch } = useContext(AuthContext);
     const [isLoading, setIsLoading] = useState(false);
-    const [targetUser, setTargetUser] = useState<IUser | null>(null);
-    const [userItemStates, setUserItemStates] =
-        useState<IUserItemStates | null>(null);
+    const [targetChat, setTargetChat] = useState<IChat | null>(null);
+    const [chatItemStates, setChatItemStates] =
+        useState<IChatItemStates | null>(null);
 
-    const { data, loading, error } = useQuery(GET_ALL_USERS, {
+    const { data, loading, error } = useQuery(GET_ALL_CHATS, {
         context: {
             headers: {
                 token: state?.token,
             },
         },
+        client: chatClient,
     });
 
     const setCredentials = (): void => {
@@ -43,13 +51,13 @@ function HomeContainer() {
         navigate(LOGIN);
     };
 
-    const handleUserClicked = (user: IUser) => {
-        setTargetUser(user);
-        setUserItemStates((prev) => {
+    const handleChatClicked = (chat: IChat) => {
+        setTargetChat(chat);
+        setChatItemStates((prev) => {
             if (!prev) return prev;
-            prev[user.uid].isActive = true;
+            prev[chat.id].isActive = true;
             Object.keys(prev).forEach((key) => {
-                if (key === user.uid) return;
+                if (key === chat.id) return;
                 prev[key].isActive = false;
             });
             return prev;
@@ -57,22 +65,28 @@ function HomeContainer() {
     };
 
     useEffect(() => {
-        const populateUsers = (): void => {
-            if (!data) return;
-            const users = data as { getAllUsers: IUser[] };
-            setUserItemStates((prev) => {
+        const populateChat = (): void => {
+            if (!data || !state) return;
+            const chats = data as { getAllChats: IChat[] };
+            setChatItemStates((prev) => {
                 prev = {};
-                users.getAllUsers.forEach((user) => {
-                    prev[user.uid] = {
-                        user,
+                chats.getAllChats.forEach((chat) => {
+                    chat = {
+                        ...chat,
+                        users: chat.users.filter(
+                            (u) => u.uid !== state.user.uid
+                        ),
+                    };
+                    prev[chat.id] = {
+                        chat,
                         isActive: false,
                     };
                 });
                 return prev;
             });
         };
-        populateUsers();
-    }, [data]);
+        populateChat();
+    }, [data, state]);
 
     useEffect(() => {
         const setLoading = (): void => {
@@ -107,22 +121,22 @@ function HomeContainer() {
                                 id="user-list"
                                 className="w-[30%] border-r overflow-auto"
                             >
-                                {userItemStates &&
-                                    Object.keys(userItemStates).map((key) => (
-                                        <UserComponent
+                                {chatItemStates &&
+                                    Object.keys(chatItemStates).map((key) => (
+                                        <ChatItemComponent
                                             key={key}
-                                            user={userItemStates[key].user}
+                                            chat={chatItemStates[key].chat}
                                             isActive={
-                                                userItemStates[key].isActive
+                                                chatItemStates[key].isActive
                                             }
-                                            handleUserClicked={
-                                                handleUserClicked
+                                            handleChatClicked={
+                                                handleChatClicked
                                             }
                                         />
                                     ))}
                             </div>
                             <div id="chat" className="w-[70%]">
-                                {targetUser ? (
+                                {targetChat ? (
                                     <div className="h-full">
                                         <div
                                             id="message-list"
