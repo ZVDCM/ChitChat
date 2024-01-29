@@ -2,7 +2,7 @@ import {
     EMAIL_REGEX,
     NOT_EMPTY_REGEX,
     PASSWORD_REGEX,
-} from '@consts/regex.js';
+} from '../consts/regex.js';
 
 class Validations {
     static isNotStringEmpty(str: string): boolean {

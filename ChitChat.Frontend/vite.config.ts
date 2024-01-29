@@ -7,17 +7,17 @@ export default defineConfig({
     plugins: [react()],
     resolve: {
         alias: {
+            '@consts': path.resolve(__dirname, './src/common/consts'),
+            '@models': path.resolve(__dirname, './src/common/models'),
+            '@_types': path.resolve(__dirname, './src/common/types'),
+            '@utils': path.resolve(__dirname, './src/common/utils'),
             '@components': path.resolve(__dirname, './src/components'),
-            '@consts': path.resolve(__dirname, './src/consts'),
             '@containers': path.resolve(__dirname, './src/containers'),
             '@_firebase': path.resolve(__dirname, './src/firebase'),
             '@graphql': path.resolve(__dirname, './src/graphql'),
             '@hooks': path.resolve(__dirname, './src/hooks'),
-            '@models': path.resolve(__dirname, './src/models'),
             '@pages': path.resolve(__dirname, './src/pages'),
             '@styles': path.resolve(__dirname, './src/styles'),
-            '@_types': path.resolve(__dirname, './src/types'),
-            '@utils': path.resolve(__dirname, './src/utils'),
         },
     },
 });

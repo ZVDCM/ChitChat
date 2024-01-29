@@ -22,17 +22,17 @@
 
         "baseUrl": ".",
         "paths": {
+            "@consts/*": ["src/common/consts/*"],
+            "@models/*": ["src/common/models/*"],
+            "@_types/*": ["src/common/types/*"],
+            "@utils/*": ["src/common/utils/*"],
             "@components/*": ["src/components/*"],
-            "@consts/*": ["src/consts/*"],
             "@containers/*": ["src/containers/*"],
             "@_firebase/*": ["src/firebase/*"],
             "@graphql/*": ["src/graphql/*"],
             "@hooks/*": ["src/hooks/*"],
-            "@models/*": ["src/models/*"],
             "@pages/*": ["src/pages/*"],
             "@styles/*": ["src/styles/*"],
-            "@_types/*": ["src/types/*"],
-            "@utils/*": ["src/utils/*"]
         }
     },
     "include": ["src"],
