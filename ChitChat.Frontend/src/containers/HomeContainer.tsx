@@ -50,6 +50,7 @@ function HomeContainer() {
         },
         client: chatClient,
     });
+    
     const {
         data: userData,
         loading: userLoading,
@@ -68,6 +69,7 @@ function HomeContainer() {
             type: AUTH_SET_CREDENTIALS,
         });
     };
+
     const resetUserItemStates = (): void => {
         if (!userItemStates) return;
         setTargetUsers(null);
@@ -101,19 +103,22 @@ function HomeContainer() {
                 if (key === chat.id) return;
                 prev[key].isActive = false;
             });
+            Object.keys;
             return prev;
         });
     };
+
     const handleUserClicked = (user: IUser) => {
-        console.log(targetUsers);
+        if (!userItemStates) return;
         setUserItemStates((prev) => {
             if (!prev) return prev;
-            prev[user.uid].isActive = true;
-            Object.keys(prev).forEach((key) => {
-                if (key === user.uid) return;
-                prev[key].isActive = false;
-            });
-            return prev;
+            return {
+                ...prev,
+                [user.uid]: {
+                    user,
+                    isActive: !userItemStates[user.uid].isActive,
+                },
+            };
         });
     };
 
