@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 export interface IMessage {
     from: string;
     message: string;
@@ -9,9 +11,9 @@ export class Message implements IMessage {
     message: string;
     sentAt: string;
 
-    constructor(from: string, message: string, sentAt: string) {
+    constructor(from: string, message: string) {
         this.from = from;
         this.message = message;
-        this.sentAt = sentAt;
+        this.sentAt = moment().format();
     }
 }

@@ -2,6 +2,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { IMessage } from '../common/models/message.js';
 import { IUser } from '../common/models/user.js';
 import { IChat } from '../common/models/chat.js';
+import logger from '../common/utils/logger.js';
 
 const collection = 'chats';
 class Chat {
@@ -21,18 +22,23 @@ class Chat {
             };
         });
     }
-    static async message(
+
+    static async create(
         chatId: string,
         users: IUser[],
-        message: IMessage,
         createdAt: string
     ): Promise<void> {
+        const db = getFirestore();
+        const data = { users, messages: [], createdAt };
+        await db.collection(collection).doc(chatId).set(data);
+    }
+
+    static async message(chatId: string, message: IMessage): Promise<void> {
         const db = getFirestore();
         const docRef = db.collection(collection).doc(chatId);
         const snapshot = await docRef.get();
         if (!snapshot.exists) {
-            const data = { users, messages: [message], createdAt };
-            await db.collection(collection).doc(chatId).set(data);
+            logger.error(`Chat ${chatId} is not found`);
             return;
         }
         await docRef.update({

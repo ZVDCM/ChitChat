@@ -1,18 +1,16 @@
 import { pubSub, rabbitMQ } from '../index.js';
 import { IMessageChat } from '../common/events/messageChat.js';
 import Chat from '../firebase/chat.js';
-import { triggerName } from '../graphql/chatSchema.js';
+import Queue from '../common/consts/queues.js';
+import Triggers from '../common/consts/triggers.js';
 
-const queueName = 'USERS';
 const userMessaged = () => {
-    rabbitMQ.consume(queueName, async (data) => {
+    rabbitMQ.consume(Queue.USERS, async (data) => {
         if (!data) return;
-        const { chatId, users, message, createdAt } = JSON.parse(
-            data
-        ) as IMessageChat;
-        await Chat.message(chatId, users, message, createdAt);
+        const { chatId, message } = JSON.parse(data) as IMessageChat;
+        await Chat.message(chatId, message);
         const messageAdded = { chatId, message };
-        await pubSub.publish(triggerName, { messageAdded });
+        await pubSub.publish(Triggers.MESSAGE_ADDED, { messageAdded });
     });
 };
 

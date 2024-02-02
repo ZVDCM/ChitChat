@@ -4,20 +4,25 @@ import { AuthContext } from '@hooks/UseAuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { LOGIN } from '@consts/urls';
 import Auth from '@_firebase/auth';
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { AUTH_SET_CREDENTIALS } from '@consts/actions';
 import UserItemComponent, {
     IUserItemState,
 } from '@components/UserItemComponent';
-import { GET_ALL_CHATS } from '@graphql/queries/chats';
-import { IChat } from '@models/chat';
+import {
+    CREATE_CHAT,
+    GET_ALL_CHATS,
+    SUBSCRIBE_TO_CHAT_CREATED,
+} from '@graphql/chats';
+import Chat, { IChat } from '@models/chat';
 import ChatItemComponent, {
     IChatItemState,
 } from '@components/ChatItemComponent';
-import { chatClient, userClient } from '../main';
-import { GET_ALL_USERS } from '@graphql/queries/users';
+import { GET_ALL_USERS } from '@graphql/users';
 import { IUser } from '@models/user';
 import UserChipComponent from '@components/UserChipComponent';
+import chatClient from '@_apollo/chatClient';
+import userClient from '@_apollo/userClient';
 
 export interface IUserItemStates {
     [key: string]: IUserItemState;
@@ -39,6 +44,7 @@ function HomeContainer() {
     const dialogRef = useRef({} as HTMLDialogElement);
 
     const {
+        subscribeToMore,
         data: chatData,
         loading: chatLoading,
         error: chatError,
@@ -50,7 +56,7 @@ function HomeContainer() {
         },
         client: chatClient,
     });
-    
+
     const {
         data: userData,
         loading: userLoading,
@@ -64,24 +70,20 @@ function HomeContainer() {
         client: userClient,
     });
 
+    const [createChat, { loading: createChatLoading, error: createChatError }] =
+        useMutation(CREATE_CHAT, {
+            context: {
+                headers: {
+                    token: state?.token,
+                },
+            },
+            client: userClient,
+        });
+
     const setCredentials = (): void => {
         dispatch({
             type: AUTH_SET_CREDENTIALS,
         });
-    };
-
-    const resetUserItemStates = (): void => {
-        if (!userItemStates) return;
-        setTargetUsers(null);
-        setUserItemStates(
-            Object.keys(userItemStates).reduce((prev, key) => {
-                prev[key] = {
-                    user: userItemStates[key].user,
-                    isActive: false,
-                };
-                return prev;
-            }, {} as IUserItemStates)
-        );
     };
 
     const handleLogout = async (): Promise<void> => {
@@ -92,20 +94,43 @@ function HomeContainer() {
         navigate(LOGIN);
     };
 
+    const setTargetUsersAndUserItemStates = (users: IUser[]) => {
+        if (!userItemStates) return;
+        setTargetUsers(users);
+        setUserItemStates(
+            Object.keys(userItemStates).reduce((prev, key) => {
+                prev[key] = {
+                    user: userItemStates[key].user,
+                    isActive: false,
+                };
+                if (users.some((u) => u.uid === key)) {
+                    prev[key].isActive = true;
+                }
+                return prev;
+            }, {} as IUserItemStates)
+        );
+    };
+
     const handleChatClicked = (chat: IChat) => {
-        resetUserItemStates();
-        setTargetChat(chat);
-        setTargetUsers(chat.users);
+        if (!chatItemStates) return;
         setChatItemStates((prev) => {
             if (!prev) return prev;
-            prev[chat.id].isActive = true;
-            Object.keys(prev).forEach((key) => {
-                if (key === chat.id) return;
-                prev[key].isActive = false;
-            });
-            Object.keys;
-            return prev;
+            const newState = {
+                ...prev,
+                [chat.id]: {
+                    chat,
+                    isActive: true,
+                },
+            };
+            if (targetChat) {
+                newState[targetChat.id] = {
+                    chat: targetChat,
+                    isActive: false,
+                };
+            }
+            return newState;
         });
+        setTargetChat(chat);
     };
 
     const handleUserClicked = (user: IUser) => {
@@ -120,71 +145,131 @@ function HomeContainer() {
                 },
             };
         });
+        if (!userItemStates[user.uid].isActive) {
+            setTargetUsers((prev) => {
+                if (!prev) return [user];
+                return [...prev, user];
+            });
+        }
+    };
+
+    const handleCreateChat = () => {
+        setTargetUsersAndUserItemStates([]);
+        dialogRef.current.showModal();
+    };
+
+    const handleAddUser = () => {
+        if (!targetChat) return;
+        setTargetUsersAndUserItemStates(targetChat.users);
+        dialogRef.current.showModal();
+    };
+
+    const handleClose = () => {
+        if (!targetUsers) return;
+        if (!targetChat) {
+            createChat({
+                variables: {
+                    input: {
+                        users: targetUsers,
+                    },
+                },
+            });
+            return;
+        }
     };
 
     useEffect(() => {
         const populateChat = (): void => {
             if (!chatData || !state) return;
             const chats = chatData as { getAllChats: IChat[] };
-            setChatItemStates((prev) => {
-                prev = {};
-                chats.getAllChats.forEach((chat) => {
-                    chat = {
-                        ...chat,
-                        users: chat.users.filter(
-                            (u) => u.uid !== state.user.uid
-                        ),
-                    };
-                    prev[chat.id] = {
-                        chat,
-                        isActive: false,
-                    };
-                });
-                return prev;
-            });
+            if (chats.getAllChats.length === 0) return;
+            setChatItemStates(
+                chats.getAllChats.reduce(
+                    (acc, { id, users, messages, createdAt }) => {
+                        acc[id] = {
+                            chat: {
+                                id,
+                                users,
+                                messages,
+                                createdAt,
+                            },
+                            isActive: false,
+                        };
+                        return acc;
+                    },
+                    {} as IChatItemStates
+                )
+            );
         };
         const populateUser = (): void => {
             if (!userData || !state) return;
             const users = userData as { getAllUsers: IUser[] };
-            setUserItemStates((prev) => {
-                prev = {};
-                users.getAllUsers.forEach((user) => {
-                    prev[user.uid] = {
-                        user,
+            if (users.getAllUsers.length === 0) return;
+            setUserItemStates(
+                users.getAllUsers.reduce((acc, { uid, displayName, email }) => {
+                    acc[uid] = {
+                        user: {
+                            uid,
+                            displayName,
+                            email,
+                        },
                         isActive: false,
                     };
-                });
-                return prev;
-            });
+                    return acc;
+                }, {} as IUserItemStates)
+            );
         };
         populateChat();
         populateUser();
     }, [chatData, userData, state]);
     useEffect(() => {
         const setLoading = (): void => {
-            setIsLoading(chatLoading || userLoading);
+            setIsLoading(chatLoading || userLoading || createChatLoading);
         };
         setLoading();
-    }, [chatLoading, userLoading, setIsLoading]);
+    }, [chatLoading, userLoading, createChatLoading, setIsLoading]);
     useEffect(() => {
         const alertError = (): void => {
             setIsLoading(false);
             if (chatError) alert(chatError.message);
             if (userError) alert(userError.message);
+            if (createChatError) alert(createChatError.message);
         };
         alertError();
-    }, [chatError, userError]);
+    }, [chatError, userError, createChatError]);
+
+    useEffect(() => {
+        const subscribeToChatCreated = () => {
+            if (!state) return;
+            subscribeToMore({
+                document: SUBSCRIBE_TO_CHAT_CREATED,
+                variables: {
+                    userUid: state?.user.uid,
+                },
+                updateQuery: (prev, { subscriptionData }) => {
+                    if (!subscriptionData.data) return prev;
+                    const chatCreated = subscriptionData.data.chatCreated;
+                    console.log(chatCreated);
+                    return Object.assign({}, prev, {
+                        getAllChats: [chatCreated, ...prev.getAllChats],
+                    });
+                },
+            });
+        };
+        subscribeToChatCreated();
+    }, [subscribeToMore, state]);
 
     return (
         <>
             {isLoading && <LoadingComponent />}
             <dialog
                 ref={dialogRef}
+                onClose={handleClose}
                 className="m-auto backdrop:backdrop-blur-[1px]"
             >
                 <article className="h-[500px]  w-[400px] flex flex-col border">
                     <section className="h-[10%] border-b flex justify-between items-center pl-4">
-                        <h1 className="font-bold">Users</h1>
+                        <h1 className="font-bold">Chat Members</h1>
                         <button
                             className="w-[50px] h-[50px] border-l"
                             onClick={() => dialogRef.current.close()}
@@ -192,7 +277,7 @@ function HomeContainer() {
                             X
                         </button>
                     </section>
-                    <section id="user-list" className="h-[80%] overflow-auto">
+                    <section id="user-list" className="h-[90%] overflow-auto">
                         {userItemStates &&
                             Object.keys(userItemStates).map((key) => (
                                 <UserItemComponent
@@ -202,10 +287,6 @@ function HomeContainer() {
                                     handleUserClicked={handleUserClicked}
                                 />
                             ))}
-                    </section>
-                    <section className="h-[20%] flex flex-col border-t">
-                        <button className="h-[50%]">Save</button>
-                        <button className="h-[50%] border-t">Cancel</button>
                     </section>
                 </article>
             </dialog>
@@ -220,8 +301,13 @@ function HomeContainer() {
                         <section className="h-[calc(100%-2rem)] flex items-stretch">
                             <div
                                 id="chat-list"
-                                className="w-[30%] border-r overflow-auto"
+                                className="relative w-[30%] border-r overflow-auto"
                             >
+                                <div className="sticky top-0 left-0">
+                                    <button onClick={handleCreateChat}>
+                                        + Create chat
+                                    </button>
+                                </div>
                                 {chatItemStates &&
                                     Object.keys(chatItemStates).map((key) => (
                                         <ChatItemComponent
@@ -241,7 +327,7 @@ function HomeContainer() {
                                     <div className="h-full">
                                         <div className="flex border-b">
                                             <div
-                                                id="user-list"
+                                                id="user-chip-list"
                                                 className="flex items-center overflow-auto gap-2 flex-1 px-2"
                                             >
                                                 {targetChat.users.map(
@@ -255,9 +341,7 @@ function HomeContainer() {
                                             </div>
                                             <button
                                                 className="py-4"
-                                                onClick={() =>
-                                                    dialogRef.current.showModal()
-                                                }
+                                                onClick={handleAddUser}
                                             >
                                                 + Add User
                                             </button>
@@ -281,7 +365,7 @@ function HomeContainer() {
                                     </div>
                                 ) : (
                                     <div className="h-full flex justify-center items-center">
-                                        <span className="text-[#ccc] translate-y-[-4rem]">
+                                        <span className="text-[#ccc]">
                                             Select a chat
                                         </span>
                                     </div>

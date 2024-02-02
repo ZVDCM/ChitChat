@@ -22,6 +22,7 @@
 
         "baseUrl": ".",
         "paths": {
+            "@_apollo/*": ["src/apollo/*"],
             "@consts/*": ["src/common/consts/*"],
             "@models/*": ["src/common/models/*"],
             "@_types/*": ["src/common/types/*"],

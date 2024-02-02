@@ -7,6 +7,7 @@ export default defineConfig({
     plugins: [react()],
     resolve: {
         alias: {
+            '@_apollo': path.resolve(__dirname, './src/apollo'),
             '@consts': path.resolve(__dirname, './src/common/consts'),
             '@models': path.resolve(__dirname, './src/common/models'),
             '@_types': path.resolve(__dirname, './src/common/types'),

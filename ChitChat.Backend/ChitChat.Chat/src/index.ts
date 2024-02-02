@@ -7,8 +7,8 @@ import server from './common/config/server.js';
 import startDatabase from './common/config/database.js';
 import RabbitMQConnectionPool from './common/config/rabbitMQ.js';
 import { PubSub } from 'graphql-subscriptions';
-import userMessaged from './consume/userMessaged.js';
 import corsOptions from './common/config/corsOptions.js';
+import consumeEvents from './consume/index.js';
 
 const app = express();
 
@@ -42,6 +42,9 @@ const start = async (): Promise<IReturn | void> => {
             logger.info(
                 `Server ready at: http://localhost:${process.env.PORT}/graphql`
             );
+            logger.info(
+                `Websocket ready at: ws://localhost:${process.env.PORT}/graphql`
+            );
         });
 
         return { rabbitMQ, pubSub };
@@ -52,4 +55,4 @@ const start = async (): Promise<IReturn | void> => {
 
 export const { rabbitMQ, pubSub } = (await start()) as IReturn;
 
-userMessaged();
+consumeEvents();

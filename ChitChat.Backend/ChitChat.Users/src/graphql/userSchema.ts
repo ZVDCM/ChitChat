@@ -1,11 +1,12 @@
-import moment from 'moment';
 import { IContext } from '../common/config/server.js';
 import Auth from '../firebase/auth.js';
 import Users from '../firebase/users.js';
-import { IUser } from '../common/models/user.js';
 import { Message } from '../common/models/message.js';
 import MessageChat from '../common/events/messageChat.js';
 import { rabbitMQ } from '../index.js';
+import CreateChat from '../common/events/createChat.js';
+import { IUser, User } from '../common/models/user.js';
+import Queue from '../common/consts/queues.js';
 
 export const userTypeDef = `#graphql
     type User{
@@ -24,22 +25,29 @@ export const userTypeDef = `#graphql
         email: String!
     }
 
+    input CreateChatInput{
+        users: [UserInput!]!
+    }
+
     input MessageChatInput{
         chatId: ID
-        users: [UserInput!]!
         message: String!
     }
 
     type Mutation {
+        createChat(input: CreateChatInput!): Boolean
         messageChat(input: MessageChatInput!): Boolean
     }
 `;
 
-const queueName = 'USERS';
-interface IMessageChat {
+interface ICreateChatInput {
     input: {
-        chatId: string | null;
         users: IUser[];
+    };
+}
+interface IMessageChatInput {
+    input: {
+        chatId: string;
         message: string;
     };
 }
@@ -52,17 +60,32 @@ export const userResolver = {
         },
     },
     Mutation: {
-        async messageChat(
+        async createChat(
             _: any,
-            { input: { chatId, users, message } }: IMessageChat,
+            { input: { users } }: ICreateChatInput,
             context: IContext
         ) {
-            const now = moment().format();
             const credentials = await Auth.isAuth(context.token);
-            const newMessage = new Message(credentials.uid, message, now);
-            const chat = new MessageChat(chatId, users, newMessage, now);
+            const authUser = new User(
+                credentials.uid,
+                credentials.name,
+                credentials.email!
+            );
+            const chat = new CreateChat([...users, authUser]);
             const data = JSON.stringify(chat);
-            await rabbitMQ.send(queueName, data);
+            await rabbitMQ.send(Queue.CHAT, data);
+            return true;
+        },
+        async messageChat(
+            _: any,
+            { input: { chatId, message } }: IMessageChatInput,
+            context: IContext
+        ) {
+            const credentials = await Auth.isAuth(context.token);
+            const newMessage = new Message(credentials.uid, message);
+            const chat = new MessageChat(chatId, newMessage);
+            const data = JSON.stringify(chat);
+            await rabbitMQ.send(Queue.USERS, data);
             return true;
         },
     },

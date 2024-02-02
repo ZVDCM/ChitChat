@@ -26,7 +26,6 @@ const server = (app: Express): IReturn => {
 
     const wsServer = new WebSocketServer({
         server: httpServer,
-        path: '/graphql',
     });
 
     const serverCleanup = useServer({ schema }, wsServer);

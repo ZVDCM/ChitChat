@@ -32,6 +32,8 @@ button:hover {
 #user-list:not(:has(.user-item))::after,
 #chat-list:not(:has(.chat-item))::after {
     position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     display: flex;
@@ -39,7 +41,7 @@ button:hover {
     align-items: center;
     font-size: 1rem;
     color: #ccc;
-    transform: translateY(-4rem);
+    pointer-events: none;
 }
 #user-list:not(:has(.user-item))::after {
     content: 'No users found';
@@ -55,10 +57,18 @@ button:hover {
     justify-content: center;
     cursor: pointer;
 }
+#user-list .user-item span:last-child,
+#chat-list .chat-item span:first-child {
+    color: gray;
+}
 #user-list .user-item.active,
 #chat-list .chat-item.active {
     outline: 1px solid;
     outline-offset: -5px;
+}
+#user-list .user-item.active span:last-child,
+#chat-list .chat-item.active span:first-child {
+    color: black;
 }
 #user-list .user-item:hover,
 #chat-list .chat-item:hover {
@@ -71,6 +81,8 @@ button:hover {
 #message-list:not(:has(.message-item))::after {
     content: 'No messages found';
     position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     display: flex;
@@ -78,5 +90,5 @@ button:hover {
     align-items: center;
     font-size: 1rem;
     color: #ccc;
-    transform: translateY(-4rem);
+    pointer-events: none;
 }
