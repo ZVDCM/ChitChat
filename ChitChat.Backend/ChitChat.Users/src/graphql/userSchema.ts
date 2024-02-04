@@ -5,7 +5,7 @@ import { Message } from '../common/models/message.js';
 import MessageChat from '../common/events/messageChat.js';
 import { rabbitMQ } from '../index.js';
 import CreateChat from '../common/events/createChat.js';
-import { IUser, User } from '../common/models/user.js';
+import { IUser } from '../common/models/user.js';
 import Queue from '../common/consts/queues.js';
 
 export const userTypeDef = `#graphql
@@ -54,8 +54,8 @@ interface IMessageChatInput {
 export const userResolver = {
     Query: {
         async getAllUsers(_: any, __: any, context: IContext) {
-            const credentials = await Auth.isAuth(context.token);
-            const users = await Users.getAllUsers(credentials.uid);
+            const { user } = await Auth.isAuth(context.token);
+            const users = await Users.getAllUsers(user.uid);
             return users;
         },
     },
@@ -65,12 +65,8 @@ export const userResolver = {
             { input: { users } }: ICreateChatInput,
             context: IContext
         ) {
-            const credentials = await Auth.isAuth(context.token);
-            const authUser = new User(
-                credentials.uid,
-                credentials.name,
-                credentials.email!
-            );
+            const { user: authUser } = await Auth.isAuth(context.token);
+
             const chat = new CreateChat([...users, authUser]);
             const data = JSON.stringify(chat);
             await rabbitMQ.send(Queue.CHAT, data);
@@ -81,8 +77,8 @@ export const userResolver = {
             { input: { chatId, message } }: IMessageChatInput,
             context: IContext
         ) {
-            const credentials = await Auth.isAuth(context.token);
-            const newMessage = new Message(credentials.uid, message);
+            const { user } = await Auth.isAuth(context.token);
+            const newMessage = new Message(user.uid, message);
             const chat = new MessageChat(chatId, newMessage);
             const data = JSON.stringify(chat);
             await rabbitMQ.send(Queue.USERS, data);

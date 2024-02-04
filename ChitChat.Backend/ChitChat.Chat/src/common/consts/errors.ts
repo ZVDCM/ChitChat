@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
 
-export const badRequest = (): GraphQLError =>
-    new GraphQLError('invalid request message', {
+export const badRequest = (message: string | null = null): GraphQLError =>
+    new GraphQLError(message ?? 'invalid request message', {
         extensions: {
             code: 'BAD_REQUEST',
             exception: {
@@ -9,8 +9,8 @@ export const badRequest = (): GraphQLError =>
             },
         },
     });
-export const unauthorized = (): GraphQLError =>
-    new GraphQLError('user not authenticated', {
+export const unauthorized = (message: string | null = null): GraphQLError =>
+    new GraphQLError(message ?? 'user not authenticated', {
         extensions: {
             code: 'UNAUTHORIZED',
             exception: {
@@ -18,8 +18,8 @@ export const unauthorized = (): GraphQLError =>
             },
         },
     });
-export const forbidden = (): GraphQLError =>
-    new GraphQLError('user not authorized', {
+export const forbidden = (message: string | null = null): GraphQLError =>
+    new GraphQLError(message ?? 'user not authorized', {
         extensions: {
             code: 'FORBIDDEN',
             exception: {
@@ -45,8 +45,8 @@ export const conflict = (target: string): GraphQLError =>
             },
         },
     });
-export const unprocessable = (message: string): GraphQLError =>
-    new GraphQLError(message, {
+export const unprocessable = (message: string | null = null): GraphQLError =>
+    new GraphQLError(message ?? 'request unprocessable', {
         extensions: {
             code: 'UNPROCESSABLE_ENTITY',
             exception: {

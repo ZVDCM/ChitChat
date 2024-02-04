@@ -2,7 +2,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { IMessage } from '../common/models/message.js';
 import { IUser } from '../common/models/user.js';
 import { IChat } from '../common/models/chat.js';
-import logger from '../common/utils/logger.js';
+import { forbidden, notFound, unprocessable } from '../common/consts/errors.js';
 
 const collection = 'chats';
 class Chat {
@@ -10,8 +10,9 @@ class Chat {
         const db = getFirestore();
         const snapshot = await db
             .collection(collection)
-            .where('users', 'array-contains', { ...user })
+            .where('users', 'array-contains', user)
             .get();
+        if (snapshot.empty) return [];
         return snapshot.docs.map((doc) => {
             const data = doc.data();
             return {
@@ -23,6 +24,22 @@ class Chat {
         });
     }
 
+    static async getAllMessages(
+        chatId: string,
+        user: IUser
+    ): Promise<IMessage[]> {
+        const db = getFirestore();
+        const docRef = db.collection(collection).doc(chatId);
+        const snapshot = await docRef.get();
+        if (!snapshot.exists) {
+            throw notFound(`Chat ${chatId} is not found`);
+        }
+        if (!snapshot.data()?.users.some((u: IUser) => u.uid === user.uid)) {
+            throw forbidden();
+        }
+        return snapshot.data()?.messages ?? [];
+    }
+
     static async create(
         chatId: string,
         users: IUser[],
@@ -30,6 +47,8 @@ class Chat {
     ): Promise<void> {
         const db = getFirestore();
         const data = { users, messages: [], createdAt };
+        if (users.length < 2)
+            throw unprocessable('Chat must have at least 2 users');
         await db.collection(collection).doc(chatId).set(data);
     }
 
@@ -37,12 +56,9 @@ class Chat {
         const db = getFirestore();
         const docRef = db.collection(collection).doc(chatId);
         const snapshot = await docRef.get();
-        if (!snapshot.exists) {
-            logger.error(`Chat ${chatId} is not found`);
-            return;
-        }
+        if (!snapshot.exists) throw notFound(`Chat ${chatId} is not found`);
         await docRef.update({
-            messages: [message, ...snapshot.data()?.messages],
+            messages: [message, ...(snapshot.data()?.messages ?? [])],
         });
     }
 }

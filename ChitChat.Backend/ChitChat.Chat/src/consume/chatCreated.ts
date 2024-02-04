@@ -8,7 +8,6 @@ const chatCreated = () => {
     rabbitMQ.consume(Queue.CHAT, async (data) => {
         if (!data) return;
         const { id, users, createdAt } = JSON.parse(data) as ICreateChat;
-        if (users.length < 2) return;
         await Chat.create(id, users, createdAt);
         const chatCreated = { id, users, createdAt };
         await pubSub.publish(Triggers.CHAT_CREATED, { chatCreated });

@@ -18,6 +18,15 @@ export const GET_ALL_CHATS = gql`
         }
     }
 `;
+export const GET_ALL_MESSAGES = gql`
+    query GetAllMessages($chatId: ID!) {
+        getAllMessages(chatId: $chatId) {
+            from
+            message
+            sentAt
+        }
+    }
+`;
 
 export const CREATE_CHAT = gql`
     mutation CreateChat($input: CreateChatInput!) {

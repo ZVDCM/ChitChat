@@ -3,7 +3,6 @@ import { pubSub } from '../index.js';
 import { IContext } from '../common/config/server.js';
 import Auth from '../firebase/auth.js';
 import Chat from '../firebase/chat.js';
-import { User } from '../common/models/user.js';
 import Triggers from '../common/consts/triggers.js';
 import { IMessageChat } from '../common/events/messageChat.js';
 import { ICreateChat } from '../common/events/createChat.js';
@@ -35,6 +34,7 @@ export const chatTypeDef = `#graphql
 
     type Query{
         getAllChats: [Chat!]
+        getAllMessages(chatId: ID!): [Message!]
     }
 
     type Subscription {
@@ -49,17 +49,24 @@ interface IChatCreated {
 interface IMessageAdded {
     messageAdded: IMessageChat;
 }
+interface IGetAllMessages {
+    chatId: string;
+}
 export const chatResolver = {
     Query: {
         getAllChats: async (_: any, __: any, context: IContext) => {
-            const credentials = await Auth.isAuth(context.token);
-            const user = new User(
-                credentials.uid,
-                credentials.name,
-                credentials.email!
-            );
+            const { user } = await Auth.isAuth(context.token);
             const chats = Chat.getAllChats(user);
             return chats;
+        },
+        getAllMessages: async (
+            _: any,
+            { chatId }: IGetAllMessages,
+            context: IContext
+        ) => {
+            const { user } = await Auth.isAuth(context.token);
+            const messages = Chat.getAllMessages(chatId, user);
+            return messages;
         },
     },
     Subscription: {

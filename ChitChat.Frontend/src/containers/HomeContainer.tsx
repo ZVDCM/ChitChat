@@ -12,9 +12,10 @@ import UserItemComponent, {
 import {
     CREATE_CHAT,
     GET_ALL_CHATS,
+    GET_ALL_MESSAGES,
     SUBSCRIBE_TO_CHAT_CREATED,
 } from '@graphql/chats';
-import Chat, { IChat } from '@models/chat';
+import { IChat } from '@models/chat';
 import ChatItemComponent, {
     IChatItemState,
 } from '@components/ChatItemComponent';
@@ -23,6 +24,7 @@ import { IUser } from '@models/user';
 import UserChipComponent from '@components/UserChipComponent';
 import chatClient from '@_apollo/chatClient';
 import userClient from '@_apollo/userClient';
+import { IMessage } from '@models/message';
 
 export interface IUserItemStates {
     [key: string]: IUserItemState;
@@ -34,12 +36,16 @@ function HomeContainer() {
     const navigate = useNavigate();
     const { state, dispatch } = useContext(AuthContext);
     const [isLoading, setIsLoading] = useState(false);
-    const [targetUsers, setTargetUsers] = useState<IUser[] | null>(null);
-    const [userItemStates, setUserItemStates] =
-        useState<IUserItemStates | null>(null);
+
     const [targetChat, setTargetChat] = useState<IChat | null>(null);
     const [chatItemStates, setChatItemStates] =
         useState<IChatItemStates | null>(null);
+
+    const [messages, setMessages] = useState<IMessage[] | null>(null);
+
+    const [targetUsers, setTargetUsers] = useState<IUser[] | null>(null);
+    const [userItemStates, setUserItemStates] =
+        useState<IUserItemStates | null>(null);
 
     const dialogRef = useRef({} as HTMLDialogElement);
 
@@ -49,6 +55,23 @@ function HomeContainer() {
         loading: chatLoading,
         error: chatError,
     } = useQuery(GET_ALL_CHATS, {
+        context: {
+            headers: {
+                token: state?.token,
+            },
+        },
+        client: chatClient,
+    });
+
+    const {
+        data: messageData,
+        loading: messageLoading,
+        error: messageError,
+    } = useQuery(GET_ALL_MESSAGES, {
+        variables: {
+            chatId: targetChat?.id,
+        },
+        skip: !targetChat,
         context: {
             headers: {
                 token: state?.token,
@@ -201,6 +224,13 @@ function HomeContainer() {
                 )
             );
         };
+        const populateMessages = (): void => {
+            if (!messageData || !state) return;
+            const messages = messageData as { getAllMessages: IMessage[] };
+            if (messages.getAllMessages.length === 0) return;
+            console.log(messages.getAllMessages);
+            setMessages(messages.getAllMessages);
+        };
         const populateUser = (): void => {
             if (!userData || !state) return;
             const users = userData as { getAllUsers: IUser[] };
@@ -220,23 +250,9 @@ function HomeContainer() {
             );
         };
         populateChat();
+        populateMessages();
         populateUser();
-    }, [chatData, userData, state]);
-    useEffect(() => {
-        const setLoading = (): void => {
-            setIsLoading(chatLoading || userLoading || createChatLoading);
-        };
-        setLoading();
-    }, [chatLoading, userLoading, createChatLoading, setIsLoading]);
-    useEffect(() => {
-        const alertError = (): void => {
-            setIsLoading(false);
-            if (chatError) alert(chatError.message);
-            if (userError) alert(userError.message);
-            if (createChatError) alert(createChatError.message);
-        };
-        alertError();
-    }, [chatError, userError, createChatError]);
+    }, [chatData, messageData, userData, state]);
 
     useEffect(() => {
         const subscribeToChatCreated = () => {
@@ -258,6 +274,35 @@ function HomeContainer() {
         };
         subscribeToChatCreated();
     }, [subscribeToMore, state]);
+
+    useEffect(() => {
+        const setLoading = (): void => {
+            setIsLoading(
+                chatLoading ||
+                    userLoading ||
+                    createChatLoading ||
+                    messageLoading
+            );
+        };
+        setLoading();
+    }, [
+        chatLoading,
+        userLoading,
+        createChatLoading,
+        messageLoading,
+        setIsLoading,
+    ]);
+
+    useEffect(() => {
+        const alertError = (): void => {
+            setIsLoading(false);
+            if (chatError) alert(chatError.message);
+            if (userError) alert(userError.message);
+            if (createChatError) alert(createChatError.message);
+            if (messageError) alert(messageError.message);
+        };
+        alertError();
+    }, [chatError, userError, createChatError, messageError]);
 
     return (
         <>
