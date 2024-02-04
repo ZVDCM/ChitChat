@@ -7,6 +7,7 @@ import { rabbitMQ } from '../index.js';
 import CreateChat from '../common/events/createChat.js';
 import { IUser } from '../common/models/user.js';
 import Queue from '../common/consts/queues.js';
+import moment from 'moment';
 
 export const userTypeDef = `#graphql
     type User{
@@ -77,8 +78,14 @@ export const userResolver = {
             { input: { chatId, message } }: IMessageChatInput,
             context: IContext
         ) {
+            const now = moment().format();
             const { user } = await Auth.isAuth(context.token);
-            const newMessage = new Message(user.uid, message);
+            const newMessage = new Message(
+                user.uid,
+                user.displayName,
+                message,
+                now
+            );
             const chat = new MessageChat(chatId, newMessage);
             const data = JSON.stringify(chat);
             await rabbitMQ.send(Queue.USERS, data);

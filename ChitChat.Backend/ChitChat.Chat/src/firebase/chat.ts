@@ -34,10 +34,16 @@ class Chat {
         if (!snapshot.exists) {
             throw notFound(`Chat ${chatId} is not found`);
         }
-        if (!snapshot.data()?.users.some((u: IUser) => u.uid === user.uid)) {
+        const chat = snapshot.data() as IChat;
+        if (!chat.users.some((u: IUser) => u.uid === user.uid)) {
             throw forbidden();
         }
-        return snapshot.data()?.messages ?? [];
+        return (
+            chat.messages.sort(
+                (a, b) =>
+                    new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
+            ) ?? []
+        );
     }
 
     static async create(

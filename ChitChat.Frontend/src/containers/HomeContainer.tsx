@@ -13,7 +13,9 @@ import {
     CREATE_CHAT,
     GET_ALL_CHATS,
     GET_ALL_MESSAGES,
+    MESSAGE_CHAT,
     SUBSCRIBE_TO_CHAT_CREATED,
+    SUBSCRIBE_TO_MESSAGE_ADDED,
 } from '@graphql/chats';
 import { IChat } from '@models/chat';
 import ChatItemComponent, {
@@ -42,6 +44,8 @@ function HomeContainer() {
     const [chatItemStates, setChatItemStates] =
         useState<IChatItemStates | null>(null);
 
+    const messageListRef = useRef({} as HTMLDivElement);
+    const txtMessageRef = useRef({} as HTMLInputElement);
     const [messages, setMessages] = useState<IMessage[] | null>(null);
 
     const [targetUsers, setTargetUsers] = useState<IUser[] | null>(null);
@@ -51,7 +55,7 @@ function HomeContainer() {
     const dialogRef = useRef({} as HTMLDialogElement);
 
     const {
-        subscribeToMore,
+        subscribeToMore: subscribeToChat,
         data: chatData,
         loading: chatLoading,
         error: chatError,
@@ -65,6 +69,7 @@ function HomeContainer() {
     });
 
     const {
+        subscribeToMore: subscribeToMessages,
         data: messageData,
         loading: messageLoading,
         error: messageError,
@@ -104,6 +109,28 @@ function HomeContainer() {
             client: userClient,
         });
 
+    const [messageChat, { error: messageChatError }] = useMutation(
+        MESSAGE_CHAT,
+        {
+            context: {
+                headers: {
+                    token: state?.token,
+                },
+            },
+            client: userClient,
+        }
+    );
+
+    const handleMessageChat = (event: React.FormEvent): void => {
+        event.preventDefault();
+        const message = txtMessageRef.current.value;
+        if (!targetChat || !message) return;
+        messageChat({
+            variables: { input: { chatId: targetChat.id, message } },
+        });
+        txtMessageRef.current.value = '';
+    };
+
     const setCredentials = (): void => {
         dispatch({
             type: AUTH_SET_CREDENTIALS,
@@ -118,7 +145,7 @@ function HomeContainer() {
         navigate(LOGIN);
     };
 
-    const setTargetUsersAndUserItemStates = (users: IUser[]) => {
+    const setTargetUsersAndUserItemStates = (users: IUser[]): void => {
         if (!userItemStates) return;
         setTargetUsers(users);
         setUserItemStates(
@@ -135,7 +162,7 @@ function HomeContainer() {
         );
     };
 
-    const handleChatClicked = (chat: IChat) => {
+    const handleChatClicked = (chat: IChat): void => {
         if (!chatItemStates) return;
         setChatItemStates((prev) => {
             if (!prev) return prev;
@@ -157,7 +184,7 @@ function HomeContainer() {
         setTargetChat(chat);
     };
 
-    const handleUserClicked = (user: IUser) => {
+    const handleUserClicked = (user: IUser): void => {
         if (!userItemStates) return;
         setUserItemStates((prev) => {
             if (!prev) return prev;
@@ -177,18 +204,12 @@ function HomeContainer() {
         }
     };
 
-    const handleCreateChat = () => {
+    const handleCreateChat = (): void => {
         setTargetUsersAndUserItemStates([]);
         dialogRef.current.showModal();
     };
 
-    const handleAddUser = () => {
-        if (!targetChat) return;
-        setTargetUsersAndUserItemStates(targetChat.users);
-        dialogRef.current.showModal();
-    };
-
-    const handleClose = () => {
+    const handleClose = (): void => {
         if (!targetUsers) return;
         if (!targetChat) {
             createChat({
@@ -255,9 +276,9 @@ function HomeContainer() {
     }, [chatData, messageData, userData, state]);
 
     useEffect(() => {
-        const subscribeToChatCreated = () => {
+        const subscribeToChatCreated = (): void => {
             if (!state) return;
-            subscribeToMore({
+            subscribeToChat({
                 document: SUBSCRIBE_TO_CHAT_CREATED,
                 variables: {
                     userUid: state?.user.uid,
@@ -265,15 +286,34 @@ function HomeContainer() {
                 updateQuery: (prev, { subscriptionData }) => {
                     if (!subscriptionData.data) return prev;
                     const chatCreated = subscriptionData.data.chatCreated;
-                    console.log(chatCreated);
                     return Object.assign({}, prev, {
                         getAllChats: [chatCreated, ...prev.getAllChats],
                     });
                 },
             });
         };
+        const subscribeToMessageCreated = (): void => {
+            if (!targetChat) return;
+            subscribeToMessages({
+                document: SUBSCRIBE_TO_MESSAGE_ADDED,
+                variables: {
+                    chatId: targetChat?.id,
+                },
+                updateQuery: (prev, { subscriptionData }) => {
+                    if (!subscriptionData.data) return prev;
+                    const messageAdded = subscriptionData.data.messageAdded;
+                    return Object.assign({}, prev, {
+                        getAllMessages: [
+                            ...prev.getAllMessages,
+                            messageAdded.message,
+                        ],
+                    });
+                },
+            });
+        };
         subscribeToChatCreated();
-    }, [subscribeToMore, state]);
+        subscribeToMessageCreated();
+    }, [subscribeToChat, subscribeToMessages, targetChat, state]);
 
     useEffect(() => {
         const setLoading = (): void => {
@@ -300,9 +340,10 @@ function HomeContainer() {
             if (userError) alert(userError.message);
             if (createChatError) alert(createChatError.message);
             if (messageError) alert(messageError.message);
+            if (messageChatError) alert(messageChatError.message);
         };
         alertError();
-    }, [chatError, userError, createChatError, messageError]);
+    }, [chatError, userError, createChatError, messageError, messageChatError]);
 
     return (
         <>
@@ -384,13 +425,11 @@ function HomeContainer() {
                                                     )
                                                 )}
                                             </div>
-                                            <button onClick={handleAddUser}>
-                                                + Add User
-                                            </button>
                                         </div>
                                         <div
                                             id="message-list"
-                                            className="h-[80%] overflow-auto p-2 pr-0"
+                                            ref={messageListRef}
+                                            className="h-[80%] flex flex-col gap-2 overflow-auto p-2 pr-0"
                                         >
                                             {messages &&
                                                 messages.map((m, i) => (
@@ -398,13 +437,20 @@ function HomeContainer() {
                                                         key={i}
                                                         message={m}
                                                         user={state.user}
+                                                        messageListRef={
+                                                            messageListRef
+                                                        }
                                                     />
                                                 ))}
                                         </div>
                                         <div className="h-[10%]">
-                                            <form className="flex gap-4">
+                                            <form
+                                                className="flex gap-4"
+                                                onSubmit={handleMessageChat}
+                                            >
                                                 <input
                                                     type="text"
+                                                    ref={txtMessageRef}
                                                     className="w-full p-2 px-4 border border-l-0 outline-none"
                                                     placeholder="Type message here..."
                                                 />

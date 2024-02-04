@@ -16,6 +16,7 @@ export const chatTypeDef = `#graphql
 
     type Message{
         from: ID!
+        fromDisplayName: String!
         message: String!
         sentAt: String!
     }
