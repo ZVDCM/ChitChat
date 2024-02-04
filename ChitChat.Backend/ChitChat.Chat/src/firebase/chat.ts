@@ -3,13 +3,13 @@ import { IMessage } from '../common/models/message.js';
 import { IUser } from '../common/models/user.js';
 import { IChat } from '../common/models/chat.js';
 import { forbidden, notFound, unprocessable } from '../common/consts/errors.js';
+import Collections from '../common/consts/collections.js';
 
-const collection = 'chats';
 class Chat {
     static async getAllChats(user: IUser): Promise<IChat[]> {
         const db = getFirestore();
         const snapshot = await db
-            .collection(collection)
+            .collection(Collections.CHATS)
             .where('users', 'array-contains', user)
             .get();
         if (snapshot.empty) return [];
@@ -29,7 +29,7 @@ class Chat {
         user: IUser
     ): Promise<IMessage[]> {
         const db = getFirestore();
-        const docRef = db.collection(collection).doc(chatId);
+        const docRef = db.collection(Collections.CHATS).doc(chatId);
         const snapshot = await docRef.get();
         if (!snapshot.exists) {
             throw notFound(`Chat ${chatId} is not found`);
@@ -55,12 +55,12 @@ class Chat {
         const data = { users, messages: [], createdAt };
         if (users.length < 2)
             throw unprocessable('Chat must have at least 2 users');
-        await db.collection(collection).doc(chatId).set(data);
+        await db.collection(Collections.CHATS).doc(chatId).set(data);
     }
 
     static async message(chatId: string, message: IMessage): Promise<void> {
         const db = getFirestore();
-        const docRef = db.collection(collection).doc(chatId);
+        const docRef = db.collection(Collections.CHATS).doc(chatId);
         const snapshot = await docRef.get();
         if (!snapshot.exists) throw notFound(`Chat ${chatId} is not found`);
         await docRef.update({
