@@ -25,6 +25,7 @@ import UserChipComponent from '@components/UserChipComponent';
 import chatClient from '@_apollo/chatClient';
 import userClient from '@_apollo/userClient';
 import { IMessage } from '@models/message';
+import MessageItemComponent from '@components/MessageItemComponent';
 
 export interface IUserItemStates {
     [key: string]: IUserItemState;
@@ -228,7 +229,6 @@ function HomeContainer() {
             if (!messageData || !state) return;
             const messages = messageData as { getAllMessages: IMessage[] };
             if (messages.getAllMessages.length === 0) return;
-            console.log(messages.getAllMessages);
             setMessages(messages.getAllMessages);
         };
         const populateUser = (): void => {
@@ -370,7 +370,7 @@ function HomeContainer() {
                             <div id="chat" className="w-[70%]">
                                 {targetChat ? (
                                     <div className="h-full">
-                                        <div className="flex border-b">
+                                        <div className="h-[10%] flex border-b">
                                             <div
                                                 id="user-chip-list"
                                                 className="flex items-center overflow-auto gap-2 flex-1 px-2"
@@ -384,17 +384,23 @@ function HomeContainer() {
                                                     )
                                                 )}
                                             </div>
-                                            <button
-                                                className="py-4"
-                                                onClick={handleAddUser}
-                                            >
+                                            <button onClick={handleAddUser}>
                                                 + Add User
                                             </button>
                                         </div>
                                         <div
                                             id="message-list"
-                                            className="h-[75%] overflow-auto"
-                                        ></div>
+                                            className="h-[80%] overflow-auto p-2 pr-0"
+                                        >
+                                            {messages &&
+                                                messages.map((m, i) => (
+                                                    <MessageItemComponent
+                                                        key={i}
+                                                        message={m}
+                                                        user={state.user}
+                                                    />
+                                                ))}
+                                        </div>
                                         <div className="h-[10%]">
                                             <form className="flex gap-4">
                                                 <input

@@ -92,3 +92,7 @@ button:hover {
     color: #ccc;
     pointer-events: none;
 }
+
+.message-item {
+    display: flex;
+}
