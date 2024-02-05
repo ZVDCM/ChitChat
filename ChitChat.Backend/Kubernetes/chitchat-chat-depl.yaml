@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: chitchat-chat-depl
+spec:
+    selector:
+        matchLabels:
+            app: chitchat-chat-depl
+    template:
+        metadata:
+            labels:
+                app: chitchat-chat-depl
+        spec:
+            containers:
+                - name: chitchat-chat-depl
+                  image: zvdcm/chitchat-chat:latest
+                  resources:
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+                  ports:
+                      - containerPort: 4000
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: chitchat-chat-clusterip-srv
+spec:
+    selector:
+        app: chitchat-chat-depl
+    ports:
+        - port: 4000
+          targetPort: 4000
