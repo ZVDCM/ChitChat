@@ -19,7 +19,7 @@ spec:
                           memory: '512Mi'
                           cpu: '500m'
                   ports:
-                      - containerPort: 4001
+                      - containerPort: 4000
 ---
 apiVersion: v1
 kind: Service
@@ -29,5 +29,5 @@ spec:
     selector:
         app: chitchat-users-depl
     ports:
-        - port: 4001
-          targetPort: 4001
+        - port: 4000
+          targetPort: 4000
