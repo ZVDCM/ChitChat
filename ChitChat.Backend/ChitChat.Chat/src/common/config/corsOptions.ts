@@ -19,6 +19,7 @@ const corsOptions: CorsOptions = {
     },
     credentials: true,
     optionsSuccessStatus: 204,
+    allowedHeaders: ['token', 'content-type'],
 };
 
 export default corsOptions;

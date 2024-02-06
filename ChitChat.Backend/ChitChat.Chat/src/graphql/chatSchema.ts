@@ -28,19 +28,19 @@ export const chatTypeDef = `#graphql
         createdAt: String!
     }
 
-    type MessageAdded {
+    type MessageAdded{
         chatId: ID!
-        message: Message!
+        messages: [Message!]
     }
-
+    
     type Query{
         getAllChats: [Chat!]
-        getAllMessages(chatId: ID!): [Message!]
+        getAllMessages(chatId: ID!): MessageAdded
     }
 
     type Subscription {
         chatCreated(userUid: ID!): Chat
-        messageAdded(chatId: ID!): MessageAdded
+        messageAdded(userUid: ID!): MessageAdded
     } 
 `;
 
@@ -67,7 +67,7 @@ export const chatResolver = {
         ) => {
             const { user } = await Auth.isAuth(context.token);
             const messages = Chat.getAllMessages(chatId, user);
-            return messages;
+            return { chatId, messages };
         },
     },
     Subscription: {
@@ -85,7 +85,9 @@ export const chatResolver = {
             subscribe: withFilter(
                 () => pubSub.asyncIterator([Triggers.MESSAGE_ADDED]),
                 (payload: IMessageAdded, variables) =>
-                    payload.messageAdded.chatId === variables.chatId
+                    payload.messageAdded.users.some(
+                        (u) => u.uid === variables.userUid
+                    )
             ),
             resolve: (payload: IMessageAdded) => payload.messageAdded,
         },

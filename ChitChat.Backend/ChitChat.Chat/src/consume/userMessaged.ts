@@ -5,11 +5,11 @@ import Queue from '../common/consts/queues.js';
 import Triggers from '../common/consts/triggers.js';
 
 const userMessaged = () => {
-    rabbitMQ.consume(Queue.USERS, async (data) => {
+    rabbitMQ.consume(Queue.MESSAGE, async (data) => {
         if (!data) return;
-        const { chatId, message } = JSON.parse(data) as IMessageChat;
-        await Chat.message(chatId, message);
-        const messageAdded = { chatId, message };
+        const { chatId, users, message } = JSON.parse(data) as IMessageChat;
+        const messages = await Chat.message(chatId, message);
+        const messageAdded = { chatId, users, messages };
         await pubSub.publish(Triggers.MESSAGE_ADDED, { messageAdded });
     });
 };

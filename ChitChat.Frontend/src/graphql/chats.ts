@@ -22,10 +22,13 @@ export const GET_ALL_CHATS = gql`
 export const GET_ALL_MESSAGES = gql`
     query GetAllMessages($chatId: ID!) {
         getAllMessages(chatId: $chatId) {
-            from
-            fromDisplayName
-            message
-            sentAt
+            chatId
+            messages {
+                from
+                fromDisplayName
+                message
+                sentAt
+            }
         }
     }
 `;
@@ -60,10 +63,10 @@ export const SUBSCRIBE_TO_CHAT_CREATED = gql`
     }
 `;
 export const SUBSCRIBE_TO_MESSAGE_ADDED = gql`
-    subscription MessageAdded($chatId: ID!) {
-        messageAdded(chatId: $chatId) {
+    subscription MessageAdded($userUid: ID!) {
+        messageAdded(userUid: $userUid) {
             chatId
-            message {
+            messages {
                 from
                 fromDisplayName
                 message

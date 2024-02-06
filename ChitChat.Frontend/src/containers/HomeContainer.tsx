@@ -35,6 +35,9 @@ export interface IUserItemStates {
 export interface IChatItemStates {
     [key: string]: IChatItemState;
 }
+export interface IChatMessages {
+    [key: string]: IMessage[];
+}
 function HomeContainer() {
     const navigate = useNavigate();
     const { state, dispatch } = useContext(AuthContext);
@@ -46,9 +49,11 @@ function HomeContainer() {
 
     const messageListRef = useRef({} as HTMLDivElement);
     const txtMessageRef = useRef({} as HTMLInputElement);
-    const [messages, setMessages] = useState<IMessage[] | null>(null);
+    const [chatMessages, setChatMessages] = useState<IChatMessages | null>(
+        null
+    );
 
-    const [targetUsers, setTargetUsers] = useState<IUser[] | null>(null);
+    const [targetUsers, setTargetUsers] = useState<IUser[]>([]);
     const [userItemStates, setUserItemStates] =
         useState<IUserItemStates | null>(null);
 
@@ -126,7 +131,9 @@ function HomeContainer() {
         const message = txtMessageRef.current.value;
         if (!targetChat || !message) return;
         messageChat({
-            variables: { input: { chatId: targetChat.id, message } },
+            variables: {
+                input: { chatId: targetChat.id, users: targetUsers, message },
+            },
         });
         txtMessageRef.current.value = '';
     };
@@ -145,25 +152,9 @@ function HomeContainer() {
         navigate(LOGIN);
     };
 
-    const setTargetUsersAndUserItemStates = (users: IUser[]): void => {
-        if (!userItemStates) return;
-        setTargetUsers(users);
-        setUserItemStates(
-            Object.keys(userItemStates).reduce((prev, key) => {
-                prev[key] = {
-                    user: userItemStates[key].user,
-                    isActive: false,
-                };
-                if (users.some((u) => u.uid === key)) {
-                    prev[key].isActive = true;
-                }
-                return prev;
-            }, {} as IUserItemStates)
-        );
-    };
-
     const handleChatClicked = (chat: IChat): void => {
         if (!chatItemStates) return;
+        if (targetChat && targetChat.id === chat.id) return;
         setChatItemStates((prev) => {
             if (!prev) return prev;
             const newState = {
@@ -182,6 +173,14 @@ function HomeContainer() {
             return newState;
         });
         setTargetChat(chat);
+        setTargetUsers(chat.users);
+        setChatMessages((prev) => {
+            const newState = prev ?? {};
+            if (!newState[chat.id]) {
+                newState[chat.id] = [];
+            }
+            return newState;
+        });
     };
 
     const handleUserClicked = (user: IUser): void => {
@@ -205,27 +204,33 @@ function HomeContainer() {
     };
 
     const handleCreateChat = (): void => {
-        setTargetUsersAndUserItemStates([]);
+        setTargetUsers([]);
+        setTargetChat(null);
+        setUserItemStates((prev) => {
+            if (!prev) return prev;
+            Object.keys(prev).forEach((uid) => {
+                prev[uid].isActive = false;
+            });
+            return prev;
+        });
         dialogRef.current.showModal();
     };
 
     const handleClose = (): void => {
         if (!targetUsers) return;
-        if (!targetChat) {
-            createChat({
-                variables: {
-                    input: {
-                        users: targetUsers,
-                    },
+        createChat({
+            variables: {
+                input: {
+                    users: targetUsers,
                 },
-            });
-            return;
-        }
+            },
+        });
+        return;
     };
 
     useEffect(() => {
         const populateChat = (): void => {
-            if (!chatData || !state) return;
+            if (!chatData) return;
             const chats = chatData as { getAllChats: IChat[] };
             if (chats.getAllChats.length === 0) return;
             setChatItemStates(
@@ -246,14 +251,34 @@ function HomeContainer() {
                 )
             );
         };
+        populateChat();
+    }, [chatData]);
+    useEffect(() => {
         const populateMessages = (): void => {
-            if (!messageData || !state) return;
-            const messages = messageData as { getAllMessages: IMessage[] };
-            if (messages.getAllMessages.length === 0) return;
-            setMessages(messages.getAllMessages);
+            if (!messageData) return;
+            const { chatId, messages } = (
+                messageData as {
+                    getAllMessages: { chatId: string; messages: IMessage[] };
+                }
+            ).getAllMessages;
+            setChatMessages((prev) => {
+                const newState = prev ?? {};
+                if (newState[chatId]) {
+                    if (newState[chatId].length > messages.length) {
+                        return newState;
+                    }
+                }
+                return {
+                    ...prev,
+                    [chatId]: messages,
+                };
+            });
         };
+        populateMessages();
+    }, [messageData]);
+    useEffect(() => {
         const populateUser = (): void => {
-            if (!userData || !state) return;
+            if (!userData) return;
             const users = userData as { getAllUsers: IUser[] };
             if (users.getAllUsers.length === 0) return;
             setUserItemStates(
@@ -270,15 +295,13 @@ function HomeContainer() {
                 }, {} as IUserItemStates)
             );
         };
-        populateChat();
-        populateMessages();
         populateUser();
-    }, [chatData, messageData, userData, state]);
+    }, [userData]);
 
     useEffect(() => {
-        const subscribeToChatCreated = (): void => {
+        const subscribeToChatCreated = (): (() => void) | void => {
             if (!state) return;
-            subscribeToChat({
+            return subscribeToChat({
                 document: SUBSCRIBE_TO_CHAT_CREATED,
                 variables: {
                     userUid: state?.user.uid,
@@ -287,33 +310,42 @@ function HomeContainer() {
                     if (!subscriptionData.data) return prev;
                     const chatCreated = subscriptionData.data.chatCreated;
                     return Object.assign({}, prev, {
-                        getAllChats: [chatCreated, ...prev.getAllChats],
+                        getAllChats: [...prev.getAllChats, chatCreated],
                     });
                 },
             });
         };
-        const subscribeToMessageCreated = (): void => {
-            if (!targetChat) return;
-            subscribeToMessages({
+        const subscribeToMessageAdded = (): (() => void) | void => {
+            if (!state || !chatItemStates) return;
+            return subscribeToMessages({
                 document: SUBSCRIBE_TO_MESSAGE_ADDED,
                 variables: {
-                    chatId: targetChat?.id,
+                    userUid: state?.user.uid,
                 },
                 updateQuery: (prev, { subscriptionData }) => {
                     if (!subscriptionData.data) return prev;
-                    const messageAdded = subscriptionData.data.messageAdded;
+                    const { chatId, messages } =
+                        subscriptionData.data.messageAdded;
+                    console.log(messages.length);
                     return Object.assign({}, prev, {
-                        getAllMessages: [
-                            ...prev.getAllMessages,
-                            messageAdded.message,
-                        ],
+                        getAllMessages: {
+                            chatId,
+                            messages,
+                        },
                     });
                 },
             });
         };
-        subscribeToChatCreated();
-        subscribeToMessageCreated();
-    }, [subscribeToChat, subscribeToMessages, targetChat, state]);
+        const unSubChatCreated = subscribeToChatCreated();
+        const unSubMessageAdded = subscribeToMessageAdded();
+
+        return () => {
+            if (!unSubChatCreated) return;
+            if (!unSubMessageAdded) return;
+            unSubChatCreated();
+            unSubMessageAdded();
+        };
+    }, [subscribeToChat, subscribeToMessages, state, chatItemStates]);
 
     useEffect(() => {
         const setLoading = (): void => {
@@ -336,11 +368,13 @@ function HomeContainer() {
     useEffect(() => {
         const alertError = (): void => {
             setIsLoading(false);
-            if (chatError) alert(chatError.message);
-            if (userError) alert(userError.message);
-            if (createChatError) alert(createChatError.message);
-            if (messageError) alert(messageError.message);
-            if (messageChatError) alert(messageChatError.message);
+            if (chatError) alert(`chat error: ${chatError.message}`);
+            if (userError) alert(`user error: ${userError.message}`);
+            if (createChatError)
+                alert(`create chat error: ${createChatError.message}`);
+            if (messageError) alert(`message error: ${messageError.message}`);
+            if (messageChatError)
+                alert(`message chat error: ${messageChatError.message}`);
         };
         alertError();
     }, [chatError, userError, createChatError, messageError, messageChatError]);
@@ -431,17 +465,19 @@ function HomeContainer() {
                                             ref={messageListRef}
                                             className="h-[80%] flex flex-col gap-2 overflow-auto p-2 pr-0"
                                         >
-                                            {messages &&
-                                                messages.map((m, i) => (
-                                                    <MessageItemComponent
-                                                        key={i}
-                                                        message={m}
-                                                        user={state.user}
-                                                        messageListRef={
-                                                            messageListRef
-                                                        }
-                                                    />
-                                                ))}
+                                            {chatMessages &&
+                                                chatMessages[targetChat.id].map(
+                                                    (m, i) => (
+                                                        <MessageItemComponent
+                                                            key={i}
+                                                            message={m}
+                                                            user={state.user}
+                                                            messageListRef={
+                                                                messageListRef
+                                                            }
+                                                        />
+                                                    )
+                                                )}
                                         </div>
                                         <div className="h-[10%]">
                                             <form

@@ -32,6 +32,7 @@ export const userTypeDef = `#graphql
 
     input MessageChatInput{
         chatId: ID
+        users: [UserInput!]!
         message: String!
     }
 
@@ -49,6 +50,7 @@ interface ICreateChatInput {
 interface IMessageChatInput {
     input: {
         chatId: string;
+        users: IUser[];
         message: string;
     };
 }
@@ -75,7 +77,7 @@ export const userResolver = {
         },
         async messageChat(
             _: any,
-            { input: { chatId, message } }: IMessageChatInput,
+            { input: { chatId, users, message } }: IMessageChatInput,
             context: IContext
         ) {
             const now = moment().format();
@@ -86,9 +88,9 @@ export const userResolver = {
                 message,
                 now
             );
-            const chat = new MessageChat(chatId, newMessage);
+            const chat = new MessageChat(chatId, users, newMessage);
             const data = JSON.stringify(chat);
-            await rabbitMQ.send(Queue.USERS, data);
+            await rabbitMQ.send(Queue.MESSAGE, data);
             return true;
         },
     },

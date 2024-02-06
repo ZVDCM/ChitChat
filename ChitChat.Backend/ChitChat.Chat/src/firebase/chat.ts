@@ -38,12 +38,7 @@ class Chat {
         if (!chat.users.some((u: IUser) => u.uid === user.uid)) {
             throw forbidden();
         }
-        return (
-            chat.messages.sort(
-                (a, b) =>
-                    new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
-            ) ?? []
-        );
+        return this.sortByDate(chat.messages) ?? [];
     }
 
     static async create(
@@ -58,14 +53,26 @@ class Chat {
         await db.collection(Collections.CHATS).doc(chatId).set(data);
     }
 
-    static async message(chatId: string, message: IMessage): Promise<void> {
+    static async message(
+        chatId: string,
+        message: IMessage
+    ): Promise<IMessage[]> {
         const db = getFirestore();
         const docRef = db.collection(Collections.CHATS).doc(chatId);
         const snapshot = await docRef.get();
         if (!snapshot.exists) throw notFound(`Chat ${chatId} is not found`);
+        const messages = [message, ...(snapshot.data()?.messages ?? [])];
         await docRef.update({
-            messages: [message, ...(snapshot.data()?.messages ?? [])],
+            messages,
         });
+        return this.sortByDate(messages);
+    }
+
+    private static sortByDate(messages: IMessage[]): IMessage[] {
+        return messages.sort(
+            (a, b) =>
+                new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
+        );
     }
 }
 

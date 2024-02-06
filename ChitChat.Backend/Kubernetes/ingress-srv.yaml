@@ -6,6 +6,8 @@ metadata:
         nginx.ingress.kubernetes.io/websocket-services: 'chitchat-users-clusterip-srv,chitchat-chat-clusterip-srv'
         nginx.ingress.kubernetes.io/enable-cors: 'true'
         nginx.ingress.kubernetes.io/cors-allow-origin: 'http://localhost:5173'
+        nginx.ingress.kubernetes.io/cors-allow-headers: 'token,content-type'
+        nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
 spec:
     ingressClassName: nginx
     tls:
